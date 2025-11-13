@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 const logger = require('../config/logger');
-const db = require('../modules/db');
+const db = require('../utils/db');
 
 const feedConfigPath = path.join(__dirname, '../config/feedMap.config.json');
 
