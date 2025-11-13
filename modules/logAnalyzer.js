@@ -31,38 +31,8 @@ function detectDayZLogCategory(line) {
   return null;
 }
 
-function logSignatureSummary(events = []) {
-  const summary = {};
-  for (const e of events) {
-    const type = e.type || 'unknown';
-    summary[type] = (summary[type] || 0) + 1;
-  }
-  logger.info(`📊 Log Summary: ${Object.entries(summary).map(([t, c]) => `${t}:${c}`).join(', ')}`);
-  return summary;
-}
-
-function getLatestTimestamp(events) {
-  if (!events?.length) return null;
-  const ts = events.map(e => e.timestamp).filter(Boolean).sort((a, b) => new Date(b) - new Date(a));
-  return ts[0] || null;
-}
-
-function parseLogContent(content, options = {}) {
-  if (!content || typeof content !== 'string') return [];
-  const lines = content.split('\n').filter(l => l.trim());
-  return lines.map(line => ({
-    timestamp: (line.match(/(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2})/) || [])[1] || new Date().toISOString(),
-    type: 'log_entry',
-    content: line.trim(),
-    filePath: options.filePath || 'unknown',
-    fileName: options.fileName || 'unknown',
-    guildId: options.guildId,
-    serviceId: options.serviceId,
-  }));
-}
-
 /* ========================================================================
- * 🧩 DayZ Log Analyzer Class
+ * 🧩 DayZ Log Analyzer Class — patched with OLD METHOD SUPPORT
  * ======================================================================== */
 class DayZLogAnalyzer {
   constructor() {
@@ -71,71 +41,51 @@ class DayZLogAnalyzer {
     this.serverMetrics = new Map();
   }
 
+  /* -----------------------------
+   * OLD API SUPPORT
+   * ----------------------------- */
+  processLogContent(content, filePath = 'unknown', guildId = null, serviceId = null) {
+    if (!content || typeof content !== 'string') return [];
+
+    const lines = content.split('\n').filter(Boolean);
+    const events = [];
+
+    for (const line of lines) {
+      const parsed = this.parseLogEntry(line, serviceId, filePath);
+      if (parsed) {
+        parsed.guildId = guildId;
+        parsed.serviceId = serviceId;
+        parsed.fileName = filePath;
+        events.push(parsed);
+      }
+    }
+    return events;
+  }
+
+  /* Parse a single entry */
   parseLogEntry(logLine, serviceId, fileName = 'unknown.log') {
     const timestamp = this.extractTimestamp(logLine);
     if (!timestamp) return null;
     const logType = this.getLogFileType(fileName);
 
-    // --- custom detections (logout, connect, respawn, artillery, etc.) ---
+    // Custom detections
     if (/\[Logout\]: New player/i.test(logLine)) return { type: 'logout_start', timestamp, serviceId, rawLine: logLine };
     if (/\[Logout\]: Player .*finished/i.test(logLine)) return { type: 'logout_complete', timestamp, serviceId, rawLine: logLine };
     if (/\[Logout\]: Player .*cancelled/i.test(logLine)) return { type: 'logout_cancel', timestamp, serviceId, rawLine: logLine };
     if (/InvokeOnConnect/i.test(logLine)) return { type: 'player_connect_init', timestamp, serviceId, rawLine: logLine };
     if (/InvokeOnDisconnect/i.test(logLine)) return { type: 'player_disconnect_init', timestamp, serviceId, rawLine: logLine };
     if (/ClientRespawnEvent/i.test(logLine)) return { type: 'player_respawn', timestamp, serviceId, rawLine: logLine };
-    if (/CorpseData|UpdateCorpseState/i.test(logLine)) return { type: 'corpse_update', timestamp, serviceId, rawLine: logLine };
 
-    if (/RPC_SOUND_ARTILLERY/i.test(logLine)) {
-      const coords = logLine.match(/<([\d\.\-]+),\s*([\d\.\-]+),\s*([\d\.\-]+)>/);
-      return {
-        type: 'artillery_event',
-        timestamp,
-        serviceId,
-        coords: coords ? { x: +coords[1], y: +coords[2], z: +coords[3] } : null,
-        rawLine: logLine,
-      };
-    }
-
-    const diag = logLine.match(/DiagMenu:\s*(?<id>[A-Z_]+)\s*=\s*(?<value>\d+)/i);
-    if (diag) {
-      return {
-        type: 'diag_toggle',
-        timestamp,
-        serviceId,
-        id: diag.groups.id,
-        value: diag.groups.value === '1',
-        category: diag.groups.id.split('_')[0],
-        rawLine: logLine,
-      };
-    }
-
-    // --- fallback detection ---
+    // fallback pattern match
     const signatureMatch = detectDayZLogCategory(logLine);
     if (signatureMatch) {
-      const event = {
+      return {
         type: signatureMatch.category,
         timestamp,
         serviceId,
         rawLine: logLine.trim(),
         matchedPattern: signatureMatch.matched.toString(),
       };
-
-      const weapon = (logLine.match(/by\s+([A-Za-z0-9_]+)/i) || [])[1];
-      const distance = (logLine.match(/distance\s*[:=]?\s*(\d+(\.\d+)?)\s*m/i) || [])[1];
-      const hitZone = (logLine.match(/hit\s+(head|torso|legs|arms|chest|stomach)/i) || [])[1];
-      if (weapon) event.weapon = weapon;
-      if (distance) event.distance = parseFloat(distance);
-      if (hitZone) event.hitZone = hitZone;
-
-      const posMatch = logLine.match(/(?:pos|at)[=<\s]*([\d.-]+)[,\s]+([\d.-]+)[,\s]+([\d.-]+)/i);
-      if (posMatch) {
-        event.position = {
-          x: parseFloat(posMatch[1]),
-          y: parseFloat(posMatch[2]),
-          z: parseFloat(posMatch[3]),
-        };
-      }
-      return event;
     }
 
     return null;
@@ -150,76 +100,12 @@ class DayZLogAnalyzer {
     if (/\.rpt$/i.test(name)) return 'rpt';
     if (/\.adm$/i.test(name)) return 'adm';
     if (/\.log$/i.test(name)) return 'log';
-    if (/\.txt$/i.test(name)) return 'txt';
-    if (/\.out$/i.test(name)) return 'out';
-    if (/\.err$/i.test(name)) return 'err';
-    if (/restart/i.test(name)) return 'restart';
     return 'unknown';
-  }
-
-  /* ========================================================================
-   * 🧮 Fetch recent logs + Generate Summary
-   * ======================================================================== */
-  async fetchRecentLogs(serviceId, limit = 10) {
-    try {
-      const nitrado = await createNitradoAPI(serviceId);
-      const { data } = await nitrado.get(`/services/${serviceId}/gameservers/files_list?path=dayzxb/config`);
-      const logFiles = data?.data?.entries?.filter(f => f.name.match(/\.(RPT|ADM|log)$/i)) || [];
-
-      const latestFiles = logFiles
-        .sort((a, b) => new Date(b.last_modified) - new Date(a.last_modified))
-        .slice(0, limit);
-
-      const logs = [];
-      for (const file of latestFiles) {
-        const fileRes = await nitrado.get(`/services/${serviceId}/gameservers/file?file=${encodeURIComponent(file.path)}`);
-        logs.push(...(fileRes?.data?.data?.content?.split('\n') || []));
-      }
-
-      logger.info(`📄 Pulled ${logs.length} log lines from ${latestFiles.length} file(s)`);
-      return logs;
-    } catch (err) {
-      logger.warn(`⚠️ Failed to fetch logs for service ${serviceId}: ${err.message}`);
-      return [];
-    }
-  }
-
-  async generateSummary(serviceId) {
-    try {
-      const logs = await this.fetchRecentLogs(serviceId);
-      const events = [];
-
-      for (const line of logs) {
-        const parsed = this.parseLogEntry(line, serviceId);
-        if (parsed) events.push(parsed);
-      }
-
-      const summary = events.reduce((acc, e) => {
-        acc[e.type] = (acc[e.type] || 0) + 1;
-        return acc;
-      }, {});
-
-      logger.info(`📊 Summary generated for ${serviceId}: ${Object.keys(summary).length} event types`);
-      return {
-        kills: summary.kill || 0,
-        deaths: summary.death || 0,
-        connections: summary.connection || 0,
-        disconnects: summary.disconnection || 0,
-        economy: summary.economy || 0,
-        base: summary.base_building || 0,
-      };
-    } catch (err) {
-      logger.error(`❌ Failed to generate summary: ${err.message}`);
-      return {};
-    }
   }
 }
 
 module.exports = {
-  parseLogContent,
-  getLatestTimestamp,
   DayZLogAnalyzer,
-  DAYZ_PATTERNS,
   detectDayZLogCategory,
-  logSignatureSummary,
+  DAYZ_PATTERNS
 };
