@@ -2,33 +2,53 @@
   "default": {
     "killfeed": {
       "patterns": ["killed by", "died.", "unconscious"],
-      "channel": "killfeed",
+      "channelName": "killfeed",
       "emoji": "💀",
-      "color": "#ff4747"
+      "color": "#ff4747",
+      "title": "💀 Kill Feed",
+      "visibility": "public",
+      "roles": ["Player"],
+      "showLocation": true
     },
     "connections": {
-      "patterns": ["is connected", "is disconnected"],
-      "channel": "connections-feed",
+      "patterns": ["is connected", "is disconnected", "Player connected", "Player disconnected"],
+      "channelName": "connections-feed",
       "emoji": "👥",
-      "color": "#4caf50"
+      "color": "#4caf50",
+      "title": "👥 Player Connections",
+      "visibility": "public",
+      "roles": ["Player"],
+      "showLocation": false
     },
     "flags": {
       "patterns": [") raised ", "flag"],
-      "channel": "flag-feed",
+      "channelName": "flag-feed",
       "emoji": "🚩",
-      "color": "#e91e63"
+      "color": "#e91e63",
+      "title": "🚩 Flag Events",
+      "visibility": "public",
+      "roles": ["Player"],
+      "showLocation": true
     },
     "items": {
       "patterns": [") placed ", ") built ", ") constructed "],
-      "channel": "placed-items-feed",
+      "channelName": "placed-items-feed",
       "emoji": "🔨",
-      "color": "#8bc34a"
+      "color": "#8bc34a",
+      "title": "🔨 Base Building",
+      "visibility": "public",
+      "roles": ["Player"],
+      "showLocation": true
     },
     "damage": {
       "patterns": ["hit by"],
-      "channel": "pvefeed",
+      "channelName": "pvefeed",
       "emoji": "⚔️",
-      "color": "#ff6f00"
+      "color": "#ff6f00",
+      "title": "⚔️ Player Damage",
+      "visibility": "public",
+      "roles": ["Player"],
+      "showLocation": true
     },
     "world_events": {
       "patterns": [
@@ -39,14 +59,24 @@
         "StaticAirplaneCrate",
         "StaticTrain"
       ],
-      "exclude": [
-        "Animal",
-        "Infected",
-        "Vehicle",
-        "Ambient",
-        "Trajectory"
-      ],
-      "channel": "events"
+      "exclude": ["Animal", "Infected", "Vehicle", "Ambient", "Trajectory"],
+      "channelName": "events",
+      "emoji": "🌍",
+      "color": "#03a9f4",
+      "title": "🌍 World Events",
+      "visibility": "admin",
+      "roles": ["Admin", "Moderator", "Staff"],
+      "showLocation": true
+    },
+    "admin": {
+      "patterns": ["admin", "server restart", "backup complete"],
+      "channelName": "admin-log",
+      "emoji": "🛠️",
+      "color": "#607d8b",
+      "title": "🛠️ Admin Logs",
+      "visibility": "admin",
+      "roles": ["Admin", "Moderator", "Staff"],
+      "showLocation": false
     }
   }
 }
