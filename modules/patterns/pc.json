@@ -1,0 +1,4 @@
+{
+  "_extends": "shared",
+  "steamid_seen": "(?:Steam|steam)ID\\s*[:=]\\s*(?P<steamid>\\d{17})"
+}

@@ -1,0 +1,5 @@
+{
+  "_extends": "shared",
+  "login": "^\\s*(?P<time>\\d{1,2}:\\d{2}:\\d{2}\\.\\d{3})\\s+Login:\\s+Player\\s+(?P<name>.+?)\\s+\\((?P<dpid>\\d+)\\).*?at:\\s+(?P<x>-?\\d+\\.\\d+)\\s+(?P<y>-?\\d+\\.\\d+)\\s+(?P<z>-?\\d+\\.\\d+)",
+  "xuid_seen": "uid\\s*[:=]\\s*(?P<xuid>[0-9A-F]+)?"
+}

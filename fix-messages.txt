@@ -1,0 +1,366 @@
+# SHORTENED GCC MESSAGES - All under 2000 characters
+
+## start-here (was 2,088 → now ~1,950)
+# 👋 Welcome to Grizzly Command Central!
+
+**GCC is the official headquarters for Grizzly Bot** - your all-in-one Discord bot for DayZ server management, community engagement, and Patreon integration.
+
+---
+
+## 🤖 What is Grizzly Bot?
+
+Grizzly Bot provides comprehensive tools for DayZ server owners:
+
+✅ **Real-time DayZ server monitoring** via Nitrado
+✅ **Professional ticket support** system
+✅ **Advanced moderation tools** (kick, ban, mute, logging)
+✅ **Economy & player rewards**
+✅ **Automatic Patreon verification** with Discord Linked Roles
+✅ **Analytics & server reports**
+✅ **100+ slash commands** for complete server control
+
+---
+
+## 🔗 How to Get Started
+
+### **Step 1: Subscribe on Patreon**
+- 🥉 **Bronze** ($6/month) - Full bot access + 1 server
+- 🥈 **Silver** ($10/month) - Bronze + website posting
+- 🥇 **Gold** ($15/month) - Silver + 2 servers + Gold listing + early beta + dev tagging + priority support
+
+👉 **Subscribe:** https://patreon.com/grizzlygaming
+
+### **Step 2: Verify with Discord Linked Roles**
+1. Click **Server Name** (top-left) → **Linked Roles**
+2. Find **Grizzly Gaming** → **Connect**
+3. Authorize with Discord OAuth2
+4. Tier role assigned automatically!
+
+### **Step 3: Access Premium Channels**
+Once verified, Bronze+ subscribers unlock:
+- 🤖 Bot invite link
+- 📝 Release notes & updates
+- 📚 Integration guides
+- 💬 Feedback & roadmap
+- 🎫 Support tickets
+
+### **Step 4: Invite the Bot**
+Visit <#grizzly-bot-invite> to add Grizzly Bot to your Discord!
+
+---
+
+## 📚 Need Help?
+
+- **Documentation:** <#faq-docs>
+- **Verification Issues:** <#verification-help>
+- **Support Tickets:** <#open-a-ticket> (Bronze+)
+- **Bot Status:** <#grizzly-status>
+
+**Ready to supercharge your Discord server? Let's get started!** 🚀
+
+---
+
+## grizzly-bot-invite (was 2,113 → now ~1,980)
+# 🤖 Grizzly Bot - Official Invite
+
+**Add Grizzly Bot to your Discord server!**
+
+---
+
+## 🔗 Bot Invitation Link
+
+👉 https://discord.com/api/oauth2/authorize?client_id=1387240096146915389&permissions=8&scope=bot%20applications.commands
+
+---
+
+## ⚙️ Setup Instructions
+
+### **Step 1: Invite the Bot**
+- Click the invite link above
+- Select your Discord server
+- Authorize permissions
+- Bot joins your server
+
+### **Step 2: Initial Configuration**
+```
+/setup-server - Initialize configuration
+/setup-channels - Create necessary channels
+```
+
+### **Step 3: Nitrado Integration (Optional)**
+For DayZ Nitrado servers:
+```
+/nitrado-auth - Connect your Nitrado account
+/register-server - Add your server
+/start-monitoring - Begin real-time monitoring
+```
+
+### **Step 4: Verify Subscription**
+```
+/verify-patreon - Link your GCC subscription
+```
+
+---
+
+## 📋 Required Permissions
+
+- ✅ Manage Channels
+- ✅ Manage Roles
+- ✅ Send Messages
+- ✅ Embed Links
+- ✅ Manage Messages
+- ✅ Read Message History
+- ✅ Add Reactions
+- ✅ Use Slash Commands
+
+---
+
+## 🎯 What Can Grizzly Bot Do?
+
+**DayZ Server Management**
+- Real-time player tracking
+- Kill feed with weapon/distance details
+- Server status monitoring
+- Join/leave notifications
+
+**Community Management**
+- Professional ticket system
+- Moderation tools (kick, ban, mute)
+- Role and permission management
+- Automated announcements
+
+**Analytics & Reports**
+- Player statistics and leaderboards
+- Channel analytics
+- Server performance reports
+- Activity tracking
+
+---
+
+## 🆘 Need Help?
+
+- **Setup Issues:** <#open-a-ticket>
+- **Documentation:** <#faq-docs>
+- **Bot Status:** <#grizzly-status>
+
+---
+
+**Ready to supercharge your Discord server? Invite Grizzly Bot now!** 🚀
+
+---
+
+## integration-guides (was 3,237 → now ~1,990)
+# 📚 Integration Guides
+
+**Step-by-step tutorials for Grizzly Bot integrations**
+
+---
+
+## 🎮 Nitrado DayZ Server
+
+**Prerequisites:** Active Nitrado DayZ server, Grizzly Bot invited, any active subscription
+
+**Setup:**
+
+**1. Authenticate**
+```
+/nitrado-auth
+```
+- Click OAuth link → Log in → Authorize → Paste token
+
+**2. Register Server**
+```
+/register-server
+  service_id: Your Nitrado service ID
+  server_name: Your server name
+```
+
+**3. Start Monitoring**
+```
+/start-monitoring
+```
+- Real-time WebSocket connection
+- Kill feeds appear in designated channel
+- Player join/leave notifications enabled
+
+**4. Configure Channels**
+```
+/setup-channels
+```
+Creates #kill-feed, #player-stats, #server-status with permissions
+
+---
+
+## 🔗 Patreon Integration (Your Server)
+
+**Prerequisites:** Patreon Creator account, Discord server, active subscription
+
+**Setup:**
+
+**1. Configure Roles**
+```
+/patreon-setup
+  bronze_role: @Bronze
+  silver_role: @Silver
+  gold_role: @Gold
+```
+
+**2. Enable Verification**
+```
+/send-patreon-verification
+  channel: #verify
+```
+Creates verification button for members
+
+**3. Test Verification**
+- Member clicks verification button
+- Check role assignment
+- Monitor <#ticket-logs> for issues
+
+---
+
+## 🌐 Website Integration
+
+**Coming Soon**
+
+Web dashboard for:
+- Real-time server stats
+- Player leaderboards
+- Ticket management
+- Analytics & reports
+
+**All subscribers get access!**
+
+---
+
+## 🤖 Discord Bot Integration
+
+**Works with:**
+- **MEE6** - Use Grizzly for DayZ, MEE6 for leveling
+- **Carl-bot** - Grizzly for tickets, Carl for reaction roles
+- **ProBot** - Grizzly for DayZ, ProBot for stats
+
+---
+
+## 🆘 Troubleshooting
+
+**Nitrado Auth Failed**
+- Check active Nitrado services
+- Re-run `/nitrado-auth`
+- Verify token validity
+
+**Monitoring Not Working**
+- Check: `/list-services`
+- Restart: `/stop-monitoring` → `/start-monitoring`
+- Verify bot permissions
+
+**Patreon Issues**
+- Verify active subscription
+- Check role names match config
+- Ensure bot has "Manage Roles"
+
+---
+
+**Need help? Open ticket:** <#open-a-ticket> 🚀
+
+---
+
+## patreon-feedback (was 3,119 → now ~1,995)
+# 💬 Patreon Feedback & Roadmap
+
+**Share your feedback and shape Grizzly Bot's future!**
+
+---
+
+## 🎯 Roadmap (Q4 2025)
+
+**In Development**
+- 🔨 Web dashboard for analytics
+- 🔨 Mobile app for server management
+- 🔨 Multi-language support
+- 🔨 Advanced player statistics
+
+**Planned**
+- 📋 Custom command builder
+- 📋 Automated server events
+- 📋 FiveM integration
+- 📋 Voice channel analytics
+
+**Under Consideration**
+- 💭 Rust server support
+- 💭 Minecraft integration
+- 💭 Custom bot branding
+- 💭 API access for developers
+
+---
+
+## 💡 Share Your Ideas
+
+**Post suggestions below!** Format:
+```
+**Feature:** Title
+**Description:** What it does
+**Use Case:** Why needed
+**Priority:** Low / Medium / High
+```
+
+---
+
+## 🧪 Beta Testing (Gold Only)
+
+**🌟 Gold subscribers get early access to beta features!**
+
+**Current Beta Features (Gold Early Access):**
+- ✨ Advanced analytics dashboard
+- ✨ Custom embed builder
+- ✨ Automated event scheduler
+- ✨ Gold server listing on website
+- ✨ Multi-server management (2 Nitrado servers)
+
+**How to Join (Gold Only):**
+1. Post "I want to join beta" below
+2. Our team will DM access instructions
+3. Test features & provide feedback
+4. Get recognition in release notes!
+
+**Bronze/Silver:** Share feature ideas and feedback below!
+
+---
+
+## 📊 Feature Voting
+
+**Vote with reactions:**
+- 🎮 = DayZ-specific features
+- 🌐 = Web dashboard
+- 📱 = Mobile app
+- 🔧 = Moderation tools
+- 📊 = Analytics & reports
+
+Most voted features built first!
+
+---
+
+## 🏆 Top Contributors
+
+**Hall of Fame:**
+
+🥇 **@Username** - Discord Linked Roles (implemented!)
+🥈 **@Username** - Ticket priority system (implemented!)
+🥉 **@Username** - Nitrado WebSocket monitoring (implemented!)
+
+*Your feedback influences development!*
+
+---
+
+## 📞 Direct Developer Access (Gold Only)
+
+**🌟 Gold subscribers can tag developers for urgent issues:**
+
+@Developer - Critical bugs or beta testing
+@Support Staff - General assistance
+
+**Use responsibly!** Gold-tier priority support (12-hour response time).
+
+---
+
+**Thank you for your support! Your subscription makes Grizzly Bot possible.** 🐻✨

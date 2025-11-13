@@ -1,0 +1,8 @@
+{
+  "restart": "^(?P<time>\\d{1,2}:\\d{2}:\\d{2}\\.\\d{3})?\\s*Version\\s+(?P<version>[\\d\\.]+)",
+  "exe_header": "^==\\s.*DayZServer_(?P<platform>PS4|X1|x64)_.*\\.exe",
+  "warning": "Warning Message: (?P<message>.*)",
+  "error": "(?:SCRIPT\\s+ERROR|Script error|ERROR|Error:)\\s*(?P<message>.*)",
+  "hive": "\\[CE\\]\\[Hive\\]\\s*::\\s*(?P<message>.*)",
+  "save": "^\\s*(?P<time>\\d{1,2}:\\d{2}:\\d{2}\\.\\d{3})\\s+Saved\\s+(?P<count>\\d+)\\s+players"
+}

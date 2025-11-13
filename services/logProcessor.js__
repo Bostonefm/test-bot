@@ -1,0 +1,275 @@
+const { EmbedBuilder } = require('discord.js');
+const feedMap = require('../config/feedMap.config.json');
+
+// Event-specific emojis for world events
+const eventEmojis = {
+  StaticHeliCrash: "🚁",
+  StaticMilitaryConvoy: "🪖",
+  StaticPoliceCar: "🚓",
+  StaticPoliceSituation: "🚨",
+  StaticAirplaneCrate: "📦",
+  StaticTrain: "🚂"
+};
+
+/**
+ * Generate iZurvive map URL for coordinates
+ * @param {number} x - X coordinate
+ * @param {number} y - Y coordinate
+ * @param {string} mapName - Map name (chernarus, livonia, sakhal, etc.)
+ * @returns {string} - iZurvive URL
+ */
+function generateIZurviveURL(x, y, mapName = 'chernarus') {
+  const mapNames = {
+    'chernarus': 'chernarus',
+    'livonia': 'livonia',
+    'sakhal': 'sakhal',
+    'namalsk': 'namalsk',
+    'deer-isle': 'deerisle',
+    'esseker': 'esseker'
+  };
+  
+  const map = mapNames[mapName.toLowerCase()] || 'chernarus';
+  return `https://dayz.ginfo.gg/${map}/#location=${Math.round(x)};${Math.round(y)};7`;
+}
+
+/**
+ * Extract coordinates from log line with iZurvive link
+ * @param {string} line - Log line containing position data
+ * @param {string} mapName - Map name for iZurvive link
+ * @returns {object|null} - {text: string, url: string, x: number, y: number, z: number} or null
+ */
+function extractCoordinates(line, mapName = 'chernarus') {
+  const posMatch = line.match(/pos=<([\d.]+),\s*([\d.]+),\s*([\d.]+)>/i);
+  if (posMatch) {
+    const [, x, y, z] = posMatch;
+    const xRound = Math.round(parseFloat(x));
+    const yRound = Math.round(parseFloat(y));
+    const zRound = Math.round(parseFloat(z));
+    
+    return {
+      text: `X: ${xRound}, Y: ${yRound}, Z: ${zRound}`,
+      url: generateIZurviveURL(parseFloat(x), parseFloat(y), mapName),
+      x: xRound,
+      y: yRound,
+      z: zRound
+    };
+  }
+  return null;
+}
+
+/**
+ * Extract item/flag name from log line
+ * @param {string} line - Log line containing item data
+ * @param {string} action - Action performed (placed, raised, built, etc.)
+ * @returns {string|null} - Item name or null
+ */
+function extractItemName(line, action) {
+  const regex = new RegExp(`\\)\\s*${action}\\s+([\\w_]+)`, 'i');
+  const match = line.match(regex);
+  return match ? match[1] : null;
+}
+
+/**
+ * Process log lines and send them to appropriate Discord channels
+ * @param {Client} client - Discord client instance
+ * @param {Guild} guild - Discord guild where logs are being processed
+ * @param {Array<string>} lines - Array of log lines to process
+ */
+async function processLogLines(client, guild, lines) {
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    
+    const lower = trimmed.toLowerCase();
+    
+    // 🚫 FILTER OUT SPAM: Skip PlayerList logs, admin markers, system messages, and warnings
+    if (
+      lower.includes('##### playerlist') ||
+      lower.includes('#####') ||
+      lower.includes('adminlog started') ||
+      lower.includes('**********************') ||
+      lower.includes('warning:') ||
+      lower.includes('.p3d') ||
+      lower.includes('no components in') ||
+      (lower.startsWith('player "') && lower.includes('pos=<') && !lower.includes('placed') && !lower.includes('raised') && !lower.includes('built'))
+    ) {
+      continue;
+    }
+    
+    for (const [feedName, feedConfig] of Object.entries(feedMap.default)) {
+      // Special handling for world_events
+      if (feedName === 'world_events') {
+        const matchedEvent = feedConfig.patterns.find(pattern => trimmed.includes(pattern));
+        
+        if (matchedEvent) {
+          const hasExcluded = feedConfig.exclude?.some(excluded => trimmed.includes(excluded));
+          
+          if (hasExcluded) {
+            continue;
+          }
+          
+          const channel = guild.channels.cache.find((c) => c.name === feedConfig.channel);
+          if (!channel) continue;
+
+          const eventEmoji = eventEmojis[matchedEvent] || '📍';
+          const eventName = matchedEvent.replace('Static', '');
+
+          const embed = new EmbedBuilder()
+            .setTitle(`${eventEmoji} ${eventName} Spawned!`)
+            .setDescription(`A **${eventName}** has spawned on the map!`)
+            .setColor(0x2E8B57)
+            .setFooter({ text: `Source: ${guild.name} | World Events` })
+            .setTimestamp();
+
+          await channel.send({ embeds: [embed] });
+          break;
+        }
+      }
+      // Special handling for flags
+      else if (feedName === 'flags') {
+        if (feedConfig.patterns.some((p) => lower.includes(p.toLowerCase()))) {
+          const channel = guild.channels.cache.find((c) => c.name === feedConfig.channel);
+          if (!channel) continue;
+
+          // Get map name from database
+          const db = require('../modules/db');
+          let mapName = 'chernarus';
+          try {
+            const mapResult = await db.query(
+              `SELECT map_name FROM nitrado_credentials WHERE guild_id = $1`,
+              [guild.id]
+            );
+            if (mapResult.rows.length > 0 && mapResult.rows[0].map_name) {
+              mapName = mapResult.rows[0].map_name;
+            }
+          } catch (err) {
+            // Default to chernarus if query fails
+          }
+
+          const flagName = extractItemName(trimmed, 'raised');
+          const coordinates = extractCoordinates(trimmed, mapName);
+          const playerMatch = trimmed.match(/Player "(.+?)"/i);
+          const playerName = playerMatch ? playerMatch[1] : 'Unknown';
+
+          let description = `**${playerName}** raised a flag!`;
+          if (flagName) description += `\n🚩 **Flag Type:** ${flagName}`;
+          if (coordinates) description += `\n📍 **Location:** [${coordinates.text}](${coordinates.url})`;
+
+          const embed = new EmbedBuilder()
+            .setColor(feedConfig.color || '#e91e63')
+            .setTitle(`${feedConfig.emoji || '🚩'} FLAG RAISED`)
+            .setDescription(description)
+            .setFooter({ text: `Source: ${guild.name} | Flag Feed` })
+            .setTimestamp();
+
+          await channel.send({ embeds: [embed] });
+          break;
+        }
+      }
+      // Special handling for items (placement)
+      else if (feedName === 'items') {
+        if (feedConfig.patterns.some((p) => lower.includes(p.toLowerCase()))) {
+          const channel = guild.channels.cache.find((c) => c.name === feedConfig.channel);
+          if (!channel) continue;
+
+          // Get map name from database
+          const db = require('../modules/db');
+          let mapName = 'chernarus';
+          try {
+            const mapResult = await db.query(
+              `SELECT map_name FROM nitrado_credentials WHERE guild_id = $1`,
+              [guild.id]
+            );
+            if (mapResult.rows.length > 0 && mapResult.rows[0].map_name) {
+              mapName = mapResult.rows[0].map_name;
+            }
+          } catch (err) {
+            // Default to chernarus if query fails
+          }
+
+          let itemName = null;
+          let action = null;
+          
+          // Check which action was performed
+          if (lower.includes('placed')) {
+            itemName = extractItemName(trimmed, 'placed');
+            action = 'placed';
+          } else if (lower.includes('built')) {
+            itemName = extractItemName(trimmed, 'built');
+            action = 'built';
+          } else if (lower.includes('constructed')) {
+            itemName = extractItemName(trimmed, 'constructed');
+            action = 'constructed';
+          }
+
+          const coordinates = extractCoordinates(trimmed, mapName);
+          const playerMatch = trimmed.match(/Player "(.+?)"/i);
+          const playerName = playerMatch ? playerMatch[1] : 'Unknown';
+
+          // Extract raw coordinates for database storage
+          const posMatch = trimmed.match(/pos=<([\d.]+),\s*([\d.]+),\s*([\d.]+)>/i);
+          const [, xRaw, yRaw, zRaw] = posMatch || [null, null, null, null];
+
+          // 🎆 CRITICAL: Store firework placements in database for shop delivery system
+          if (itemName && itemName.toLowerCase().includes('firework') && posMatch) {
+            try {
+              await db.query(
+                `INSERT INTO delivery_coordinates (guild_id, player_name, item_placed, x_coord, y_coord, z_coord, raw_log_line)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [
+                  guild.id,
+                  playerName,
+                  itemName,
+                  Math.round(parseFloat(xRaw)),
+                  Math.round(parseFloat(yRaw)),
+                  Math.round(parseFloat(zRaw)),
+                  trimmed
+                ]
+              );
+              
+              const logger = require('../utils/logger');
+              logger.info(`🎆 DELIVERY COORDS SAVED: ${playerName} placed ${itemName} at X:${Math.round(parseFloat(xRaw))}, Y:${Math.round(parseFloat(yRaw))}, Z:${Math.round(parseFloat(zRaw))}`);
+            } catch (err) {
+              const logger = require('../utils/logger');
+              logger.error(`Failed to save delivery coordinates: ${err.message}`);
+            }
+          }
+
+          let description = `**${playerName}** ${action || 'placed'} an item!`;
+          if (itemName) description += `\n🔨 **Item:** ${itemName}`;
+          if (coordinates) description += `\n📍 **Location:** [${coordinates.text}](${coordinates.url})`;
+
+          const embed = new EmbedBuilder()
+            .setColor(feedConfig.color || '#8bc34a')
+            .setTitle(`${feedConfig.emoji || '🔨'} ITEM ${(action || 'placed').toUpperCase()}`)
+            .setDescription(description)
+            .setFooter({ text: `Source: ${guild.name} | Placement Feed` })
+            .setTimestamp();
+
+          await channel.send({ embeds: [embed] });
+          break;
+        }
+      }
+      // Standard feed processing
+      else {
+        if (feedConfig.patterns.some((p) => lower.includes(p.toLowerCase()))) {
+          const channel = guild.channels.cache.find((c) => c.name === feedConfig.channel);
+          
+          if (!channel) continue;
+
+          const embed = new EmbedBuilder()
+            .setColor(feedConfig.color || '#888888')
+            .setTitle(`${feedConfig.emoji || '📜'} ${feedName.toUpperCase()}`)
+            .setDescription('```' + trimmed + '```')
+            .setFooter({ text: `Source: ${guild.name} | Nitrado Log Feed` })
+            .setTimestamp();
+
+          await channel.send({ embeds: [embed] });
+          break;
+        }
+      }
+    }
+  }
+}
+
+module.exports = { processLogLines };
