@@ -1,0 +1,250 @@
+{
+  "requiredRoles": [
+    "🥉Bronze",
+    "🥈Silver",
+    "🥇Gold",
+    "Partner",
+    "Support Staff",
+    "Developer"
+  ],
+  "categories": [
+    {
+      "name": "🎫 Active Tickets",
+      "channels": [],
+      "permissions": {
+        "@everyone": [],
+        "Support Staff": [
+          "ViewChannel",
+          "SendMessages",
+          "ManageThreads",
+          "ManageMessages",
+          "ManageChannels"
+        ],
+        "Developer": [
+          "ViewChannel",
+          "SendMessages",
+          "ManageThreads",
+          "ManageMessages",
+          "ManageChannels"
+        ]
+      }
+    },
+    {
+      "name": "📣 Welcome & Orientation",
+      "channels": [
+        "start-here",
+        "announcements",
+        "faq-docs"
+      ],
+      "permissions": {
+        "@everyone": [
+          "ViewChannel",
+          "ReadMessageHistory"
+        ],
+        "Support Staff": [
+          "ViewChannel",
+          "SendMessages",
+          "ManageMessages"
+        ],
+        "Developer": [
+          "ViewChannel",
+          "SendMessages",
+          "ManageMessages"
+        ]
+      }
+    },
+    {
+      "name": "🪪 Verification",
+      "channels": [
+        "verify-linked-roles",
+        "verification-help"
+      ],
+      "permissions": {
+        "@everyone": [
+          "ViewChannel",
+          "ReadMessageHistory"
+        ],
+        "Support Staff": [
+          "ViewChannel",
+          "SendMessages",
+          "ManageMessages"
+        ],
+        "Developer": [
+          "ViewChannel",
+          "SendMessages",
+          "ManageMessages"
+        ]
+      }
+    },
+    {
+      "name": "🛠️ Support & Operations",
+      "channels": [
+        "open-a-ticket",
+        "ticket-logs",
+        "grizzly-status"
+      ],
+      "permissions": {
+        "@everyone": [],
+        "🥉Bronze": [
+          "ViewChannel",
+          "ReadMessageHistory"
+        ],
+        "🥈Silver": [
+          "ViewChannel",
+          "ReadMessageHistory"
+        ],
+        "🥇Gold": [
+          "ViewChannel",
+          "ReadMessageHistory"
+        ],
+        "Partner": [
+          "ViewChannel",
+          "ReadMessageHistory"
+        ],
+        "Support Staff": [
+          "ViewChannel",
+          "SendMessages",
+          "ManageThreads",
+          "ManageMessages"
+        ],
+        "Developer": [
+          "ViewChannel",
+          "SendMessages",
+          "ManageThreads",
+          "ManageMessages"
+        ]
+      }
+    },
+    {
+      "name": "🤖 Grizzly Bot Resources",
+      "channels": [
+        "grizzly-bot-invite",
+        "bot-release-notes",
+        "integration-guides",
+        "patreon-feedback"
+      ],
+      "permissions": {
+        "@everyone": [],
+        "🥉Bronze": [
+          "ViewChannel",
+          "ReadMessageHistory"
+        ],
+        "🥈Silver": [
+          "ViewChannel",
+          "ReadMessageHistory"
+        ],
+        "🥇Gold": [
+          "ViewChannel",
+          "SendMessages",
+          "ReadMessageHistory"
+        ],
+        "Partner": [
+          "ViewChannel",
+          "SendMessages",
+          "ReadMessageHistory"
+        ],
+        "Support Staff": [
+          "ViewChannel",
+          "SendMessages",
+          "ManageMessages"
+        ],
+        "Developer": [
+          "ViewChannel",
+          "SendMessages",
+          "ManageMessages"
+        ]
+      }
+    }
+  ],
+  "starterMessages": {
+    "start-here": "# Welcome to Grizzly Command Central\n\n**GCC is the official headquarters for Grizzly Bot** - your all-in-one Discord bot for DayZ server management, community engagement, and Patreon integration.\n\n---\n\n## What is Grizzly Bot?\n\nGrizzly Bot provides comprehensive tools for DayZ server owners:\n\n• Real-time DayZ server monitoring via Nitrado\n• Professional ticket support system\n• Advanced moderation tools (kick, ban, mute, logging)\n• Economy & player rewards\n• Automatic Patreon verification with Discord Linked Roles\n• Analytics & server reports\n• 100+ slash commands for complete server control\n\n---\n\n## How to Get Started\n\n### Step 1: Subscribe on Patreon\n• **Bronze** ($6/mo) - Full bot + 1 server + 24-48hr support\n• **Silver** ($10/mo) - Bronze + website posting + 24-48hr support\n• **Gold** ($15/mo) - Silver + 2 servers + Gold listing + beta + dev tagging + 12hr priority support\n\n→ **Subscribe:** https://patreon.com/grizzlygaming\n\n### Step 2: Verify with Discord Linked Roles\n1. Click **Server Name** (top-left) → **Linked Roles**\n2. Find **Grizzly Gaming** → **Connect**\n3. Authorize with Discord OAuth2\n4. Tier role assigned automatically\n\n### Step 3: Access Premium Channels\nOnce verified, Bronze+ subscribers unlock:\n• Bot invite link\n• Release notes & updates\n• Integration guides\n• Feedback & roadmap\n• Support tickets\n\n### Step 4: Invite the Bot\nVisit <#grizzly-bot-invite> to add Grizzly Bot to your Discord\n\n---\n\n## Need Help?\n\n• **Documentation:** <#faq-docs>\n• **Verification Issues:** <#verification-help>\n• **Support Tickets:** <#open-a-ticket> (Bronze+)\n• **Bot Status:** <#grizzly-status>\n\n**Ready to supercharge your Discord server? Let's get started.**",
+    "announcements": "**Grizzly Bot Announcements**\n\nStay updated with the latest Grizzly Bot news, updates, and features.\n\n---\n\n## October 2025 - Discord Linked Roles Launch\n\n**We've integrated Discord Linked Roles for automatic Patreon verification**\n\n**What's New:**\n• One-click verification through Discord's native Linked Roles\n• Automatic tier role assignment (Bronze/Silver/Gold)\n• Instant access to premium channels\n• Secure OAuth2 authentication with CSRF protection\n\n**How to Verify:**\n1. Subscribe on Patreon: https://patreon.com/grizzlygaming\n2. Server Name → Linked Roles → Grizzly Gaming → Connect\n3. Done - Your tier role is assigned automatically\n\n---\n\n**Follow this channel for future updates and announcements.**",
+    "faq-docs": "## Frequently Asked Questions\n\n**Q: What is GCC?**\nA: GCC is Grizzly Bot's headquarters where Patreon subscribers verify accounts and access bot invites.\n\n**Q: Is GCC a DayZ server?**\nA: No, GCC is the bot's home. Invite Grizzly Bot to YOUR Discord server to manage your DayZ community.\n\n**Q: How do I verify my Patreon?**\nA: Click **Server Name** → **Linked Roles** → **Grizzly Gaming** → **Connect**. Role assigned automatically.\n\n**Q: What unlocks after verification?**\n• **Bronze:** All channels + 1 server + standard support (24-48hr)\n• **Silver:** All Bronze features + website posting + 1 server\n• **Gold:** All Silver features + 2 servers + Gold listing + early beta + dev tagging + priority support (12hr)\n\n**Q: What can Grizzly Bot do?**\n• DayZ monitoring (Nitrado)\n• Ticket system\n• Moderation (kick, ban, mute)\n• Economy & rewards\n• Analytics & reports\n• 100+ commands\n\n**Q: Subscription tiers?**\n**Bronze** ($6/mo) - Full bot access + 1 server\n**Silver** ($10/mo) - Bronze + website posting\n**Gold** ($15/mo) - Silver + 2 servers + Gold listing + early beta + dev tagging + priority support\n\n**Q: Need help?**\n• Verification: <#verification-help>\n• Support: <#open-a-ticket> (Bronze+)\n• General: This channel\n\n**Links:**\n• Patreon: https://patreon.com/grizzlygaming\n• Docs: https://grizzlygaming-gg.com/docs\n• Bot Invite: <#grizzly-bot-invite>",
+    "verify-linked-roles": "# Verify Your Patreon Subscription\n\n**Use Discord Linked Roles for automatic verification and instant access**\n\n---\n\n## How to Verify (One-Click Method)\n\n### Step 1: Subscribe on Patreon\nIf you haven't already:\n→ **Subscribe here:** https://patreon.com/grizzlygaming\n\nChoose your tier:\n• **Bronze** - $6/month (1 server + standard support)\n• **Silver** - $10/month (Bronze + website posting)\n• **Gold** - $15/month (Silver + 2 servers + Gold listing + early beta + dev tagging + priority support)\n\n### Step 2: Connect via Linked Roles\n1. Click **Server Name** (top-left corner of Discord)\n2. Select **Linked Roles**\n3. Find **Grizzly Gaming** in the connections list\n4. Click **Connect**\n5. Authorize with Discord OAuth2\n6. **Done** - Your tier role is assigned automatically\n\n### Step 3: Access Premium Channels\nOnce verified, you'll see:\n• <#grizzly-bot-invite> - Get the bot invite link\n• <#bot-release-notes> - Latest updates\n• <#integration-guides> - Setup guides (Bronze+)\n• <#patreon-feedback> - Share feedback (Bronze+)\n\n---\n\n## Troubleshooting\n\n**Role not assigned?**\n• Make sure your Patreon subscription is active\n• Try disconnecting and reconnecting in Linked Roles\n• Wait 1-2 minutes for Discord to sync\n\n**Still having issues?**\nGo to <#verification-help> and ask for assistance\n\n---\n\n**Welcome to Grizzly Command Central**",
+    "verification-help": "## Verification Support\n\n**Having trouble verifying your Patreon subscription? We're here to help**\n\n---\n\n### Common Issues & Solutions\n\n**1. Role Not Assigned After Verification**\n• Ensure your Patreon subscription is **active**\n• Try **disconnecting** and **reconnecting** in Linked Roles\n• Wait **1-2 minutes** for Discord to sync\n• Make sure you're using the **same email** for Patreon and Discord\n\n**2. Can't Find Linked Roles**\n• Click **Server Name** (top-left) → **Linked Roles**\n• Look for **Grizzly Gaming** in the connections list\n• Make sure you're in the **Grizzly Command Central** server\n\n**3. OAuth Authorization Failed**\n• Clear your browser cache and try again\n• Make sure you're logged into the correct Discord account\n• Try using a different browser\n\n**4. Wrong Tier Role Assigned**\n• Check your Patreon tier on https://patreon.com/grizzlygaming\n• Disconnect and reconnect via Linked Roles\n• Contact support if the issue persists\n\n---\n\n### Need Manual Assistance?\n\nIf none of the above solutions work, please provide:\n1. Your **Patreon email address**\n2. Your **Discord username**\n3. Your **subscription tier** (Bronze/Silver/Gold)\n4. **Screenshot** of your active Patreon subscription\n\nOur support team will manually verify your account within 24 hours.\n\n---\n\n**Post your issue below and our support team will assist you**",
+    "open-a-ticket": "# Support Ticket System\n\n**Need help with Grizzly Bot? Open a support ticket below**\n\n---\n\n## How to Create a Ticket\n\nUse the `/ticket-create` command:\n```\n/ticket-create\n  title: Brief description of your issue\n  description: Detailed explanation\n  priority: low | medium | high | urgent\n```\n\n**Example:**\n```\n/ticket-create\n  title: Bot not responding to commands\n  description: Grizzly Bot doesn't respond when I use /server-status\n  priority: medium\n```\n\n---\n\n## Ticket Categories\n\n**Technical Support**\n• Bot setup and configuration\n• Command issues\n• Permission problems\n• Database errors\n\n**Nitrado Integration**\n• Server authentication\n• Monitoring issues\n• Kill feed not working\n• Player tracking problems\n\n**Billing & Subscriptions**\n• Patreon verification\n• Tier upgrades/downgrades\n• Payment issues\n• Cancellation requests\n\n**Feature Requests**\n• New command ideas\n• Integration suggestions\n• Improvement proposals\n\n---\n\n## Response Times\n\n• **Bronze/Silver:** 24-48 hours\n• **Gold:** 12 hours (priority support)\n• **Urgent Issues:** Within 6 hours (all tiers)\n\n---\n\n**Use `/ticket-create` to open a support ticket**",
+    "ticket-logs": "**Ticket Activity Log**\n\nThis channel tracks all ticket activity for transparency and accountability.\n\n**Logged Events:**\n• Ticket created\n• Staff assigned\n• Status updates\n• Ticket closed\n• Priority changes\n\n---\n\n*Only visible to Support Staff and Developers.*",
+    "grizzly-status": "## Grizzly Bot Status\n\n**Real-time status updates and uptime monitoring**\n\n---\n\n### Current Status\n\n**All Systems Operational**\n\n• Bot Online: Active\n• Commands: Active\n• Database: Active\n• Nitrado API: Active\n• Patreon Integration: Active\n• Linked Roles OAuth: Active\n\n**Uptime:** 99.9%\n**Last Restart:** October 14, 2025\n\n---\n\n### Scheduled Maintenance\n\nNo maintenance scheduled at this time.\n\n---\n\n### Recent Updates\n\n**October 14, 2025** - Discord Linked Roles launched\n**October 10, 2025** - Performance optimizations\n**October 5, 2025** - Database migration completed\n\n---\n\n*This channel is updated automatically by the bot.*",
+    "grizzly-bot-invite": "# Grizzly Bot - Official Invite\n\n**Add Grizzly Bot to your Discord server**\n\n---\n\n## Bot Invitation Link\n\n→ https://discord.com/api/oauth2/authorize?client_id=1387240096146915389&permissions=8&scope=bot%20applications.commands\n\n---\n\n## Setup Instructions\n\n### Step 1: Invite the Bot\n• Click the invite link above\n• Select your Discord server\n• Authorize permissions\n• Bot joins your server\n\n### Step 2: Initial Configuration\n```\n/setup-server - Initialize configuration\n/setup-channels - Create necessary channels\n```\n\n### Step 3: Nitrado Integration (Optional)\nFor DayZ Nitrado servers:\n```\n/nitrado-auth - Connect your Nitrado account\n/register-server - Add your server\n/start-monitoring - Begin real-time monitoring\n```\n\n### Step 4: Verify Subscription\n```\n/verify-patreon - Link your GCC subscription\n```\n\n---\n\n## Required Permissions\n\n• Manage Channels\n• Manage Roles\n• Send Messages\n• Embed Links\n• Manage Messages\n• Read Message History\n• Add Reactions\n• Use Slash Commands\n\n---\n\n## What Can Grizzly Bot Do?\n\n**DayZ Server Management**\n• Real-time player tracking\n• Kill feed with weapon/distance details\n• Server status monitoring\n• Join/leave notifications\n\n**Community Management**\n• Professional ticket system\n• Moderation tools (kick, ban, mute)\n• Role and permission management\n• Automated announcements\n\n**Analytics & Reports**\n• Player statistics and leaderboards\n• Channel analytics\n• Server performance reports\n• Activity tracking\n\n---\n\n## Need Help?\n\n• **Setup Issues:** <#open-a-ticket>\n• **Documentation:** <#faq-docs>\n• **Bot Status:** <#grizzly-status>\n\n---\n\n**Ready to supercharge your Discord server? Invite Grizzly Bot now.**",
+    "bot-release-notes": "# Grizzly Bot - Release Notes\n\n**Stay updated with the latest features**\n\n---\n\n## Version 2.1 - October 14, 2025\n\n### New Features\n\n**Discord Linked Roles Integration**\n• One-click Patreon verification\n• Automatic tier role assignment (Bronze/Silver/Gold)\n• Secure OAuth2 authentication\n• Instant access to premium channels\n\n**Security & Performance**\n• CSRF protection for OAuth callbacks\n• Signed secure cookies\n• Optimized database queries\n• Enhanced role metadata system\n\n### Bug Fixes\n• Fixed OAuth security vulnerability\n• Fixed role assignment delays\n• Fixed Nitrado WebSocket reconnection\n• Fixed ticket permissions\n\n---\n\n## Version 2.0 - October 1, 2025\n\n**Unified Bot Architecture**\n• Merged Grizzly Bot + Assistant Bot\n• Reduced costs: $60/mo → $20/mo\n• 100+ commands total\n• Advanced ticket system with priorities\n• Real-time WebSocket monitoring\n• 98.5% code reduction (optimized)\n\n---\n\n## Q4 2025 Roadmap\n• Web dashboard\n• Mobile app\n• Multi-language support\n• Advanced analytics\n\n---\n\n## Links\n\n• **Full Changelog:** https://grizzlygaming-gg.com/changelog\n• **Documentation:** https://grizzlygaming-gg.com/docs\n• **Share Feedback:** <#patreon-feedback>\n\n**Gold subscribers get early beta access**",
+    "integration-guides": "# Integration Guides\n\n**Tutorials for Grizzly Bot integrations**\n\n---\n\n## Nitrado DayZ Server\n\n**Prerequisites:** Nitrado DayZ server, Grizzly Bot invited, active subscription\n\n**1. Authenticate**\n```\n/nitrado-auth\n```\nClick OAuth link → Log in → Authorize → Paste token\n\n**2. Register Server**\n```\n/register-server service_id: [ID] server_name: [Name]\n```\n\n**3. Start Monitoring**\n```\n/start-monitoring\n```\nReal-time WebSocket, kill feeds, join/leave notifications\n\n**4. Configure Channels**\n```\n/setup-channels\n```\nCreates #kill-feed, #player-stats, #server-status\n\n---\n\n## Patreon (Your Server)\n\n**Prerequisites:** Patreon Creator account, Discord server, subscription\n\n**1. Configure Roles**\n```\n/patreon-setup bronze_role: @Bronze silver_role: @Silver gold_role: @Gold\n```\n\n**2. Enable Verification**\n```\n/send-patreon-verification channel: #verify\n```\n\n**3. Test** - Member verifies → Check role → Monitor <#ticket-logs>\n\n---\n\n## Website Integration\n\n**Coming Soon:** Web dashboard for server stats, leaderboards, tickets, analytics\n\n---\n\n## Works With Other Bots\n\n• **MEE6** - Grizzly (DayZ) + MEE6 (leveling)\n• **Carl-bot** - Grizzly (tickets) + Carl (roles)\n• **ProBot** - Grizzly (DayZ) + ProBot (stats)\n\n---\n\n## Troubleshooting\n\n**Nitrado Auth Failed**\n• Check active services\n• Re-run `/nitrado-auth`\n• Verify token validity\n\n**Monitoring Not Working**\n• `/list-services` to check\n• `/stop-monitoring` → `/start-monitoring`\n• Verify bot permissions\n\n**Patreon Issues**\n• Active subscription required\n• Role names must match\n• Bot needs \"Manage Roles\"\n\n**Need help?** <#open-a-ticket>",
+    "patreon-feedback": "# Patreon Feedback & Roadmap\n\n**Share feedback and shape Grizzly Bot**\n\n---\n\n## Q4 2025 Roadmap\n\n**In Development:** Web dashboard, Mobile app, Multi-language, Advanced stats\n\n**Planned:** Custom commands, Server events, FiveM integration, Voice analytics\n\n**Considering:** Rust support, Minecraft, Custom branding, API access\n\n---\n\n## Share Ideas\n\nPost suggestions in this format:\n```\n**Feature:** Title\n**Description:** What it does\n**Use Case:** Why needed\n**Priority:** Low/Medium/High\n```\n\n---\n\n## Beta Testing (Gold Only)\n\n**Gold subscribers get early access to:**\n• Advanced analytics\n• Custom embed builder\n• Event scheduler\n• Gold website listing\n• 2 Nitrado servers\n\n**Join:** Post \"I want to join beta\"\n\n**Bronze/Silver:** Share ideas below\n\n---\n\n## Feature Voting\n\nReact to vote:\n• DayZ features\n• Web dashboard\n• Mobile app\n• Moderation tools\n• Analytics\n\nMost voted features built first\n\n---\n\n## Top Contributors\n\n• @Username - Discord Linked Roles\n• @Username - Ticket priorities\n• @Username - WebSocket monitoring\n\n*Your feedback influences development*\n\n---\n\n## Developer Access (Gold Only)\n\n**Gold subscribers can tag:**\n\n@Developer - Critical bugs/beta access\n@Support Staff - General help\n\n**12-hour priority support**\n\n---\n\n**Thank you - Your subscription makes Grizzly Bot possible.**"
+  },
+  "channelPermissions": {
+    "integration-guides": {
+      "@everyone": [],
+      "🥉Bronze": [
+        "ViewChannel",
+        "ReadMessageHistory"
+      ],
+      "🥈Silver": [
+        "ViewChannel",
+        "ReadMessageHistory"
+      ],
+      "🥇Gold": [
+        "ViewChannel",
+        "ReadMessageHistory"
+      ],
+      "Partner": [
+        "ViewChannel",
+        "ReadMessageHistory"
+      ],
+      "Support Staff": [
+        "ViewChannel",
+        "SendMessages",
+        "ManageMessages"
+      ],
+      "Developer": [
+        "ViewChannel",
+        "SendMessages",
+        "ManageMessages"
+      ]
+    },
+    "patreon-feedback": {
+      "@everyone": [],
+      "🥉Bronze": [
+        "ViewChannel",
+        "ReadMessageHistory"
+      ],
+      "🥈Silver": [
+        "ViewChannel",
+        "ReadMessageHistory"
+      ],
+      "🥇Gold": [
+        "ViewChannel",
+        "ReadMessageHistory"
+      ],
+      "Partner": [
+        "ViewChannel",
+        "ReadMessageHistory"
+      ],
+      "Support Staff": [
+        "ViewChannel",
+        "SendMessages",
+        "ManageMessages"
+      ],
+      "Developer": [
+        "ViewChannel",
+        "SendMessages",
+        "ManageMessages"
+      ]
+    },
+    "ticket-logs": {
+      "@everyone": [],
+      "🥉Bronze": [],
+      "🥈Silver": [],
+      "🥇Gold": [],
+      "Partner": [],
+      "Support Staff": [
+        "ViewChannel",
+        "ReadMessageHistory"
+      ],
+      "Developer": [
+        "ViewChannel",
+        "ReadMessageHistory",
+        "ManageMessages"
+      ]
+    }
+  },
+  "reactionRoles": {}
+}

@@ -1,0 +1,117 @@
+{
+  "games": {
+    "dayz": {
+      "name": "DayZ",
+      "platforms": {
+        "ps4": {
+          "paths": [
+            "/games/ni{serviceId}_1/ftproot/dayzps",
+            "/games/{serviceId}_1/ftproot/dayzps",
+            "/games/{serviceId}_1/ftproot/dayzps/config",
+            "/games/{serviceId}_1/noftp/dayzps/config",
+            "/games/{userId}_1/noftp/dayzps/config",
+            "/games/{serviceId}/noftp/dayzps/config",
+            "/dayzps/config",
+            "/config"
+          ],
+          "filePatterns": ["DayZServer_PS4_x64_*.ADM", "DayZServer_PS4_x64_*.RPT", "script_*.log"]
+        },
+        "xbox": {
+          "paths": [
+            "/games/{serviceId}_1/noftp/dayzxb/config",
+            "/games/{userId}_1/noftp/dayzxb/config",
+            "/dayzxb/config",
+            "/config"
+          ],
+          "filePatterns": ["DayZServer_XB_x64_*.ADM", "DayZServer_XB_x64_*.RPT", "script_*.log"]
+        },
+        "pc": {
+          "paths": [
+            "/games/{serviceId}_1/ftproot/dayz/config",
+            "/games/{userId}_1/ftproot/dayz/config",
+            "/dayz/config",
+            "/config"
+          ],
+          "filePatterns": ["DayZServer_x64_*.ADM", "DayZServer_x64_*.RPT", "script_*.log"]
+        }
+      }
+    },
+    "minecraft": {
+      "name": "Minecraft",
+      "platforms": {
+        "java": {
+          "paths": [
+            "/games/{serviceId}_1/ftproot/minecraft/logs",
+            "/games/{userId}_1/ftproot/minecraft/logs",
+            "/minecraft/logs",
+            "/logs"
+          ],
+          "filePatterns": ["latest.log", "debug.log", "*.log.gz"]
+        },
+        "bedrock": {
+          "paths": [
+            "/games/{serviceId}_1/ftproot/bedrock/logs",
+            "/games/{userId}_1/ftproot/bedrock/logs",
+            "/bedrock/logs",
+            "/logs"
+          ],
+          "filePatterns": ["*.log", "server.log"]
+        }
+      }
+    },
+    "arkse": {
+      "name": "ARK: Survival Evolved",
+      "platforms": {
+        "default": {
+          "paths": [
+            "/games/{serviceId}_1/ftproot/arkse/ShooterGame/Saved/Logs",
+            "/games/{userId}_1/ftproot/arkse/ShooterGame/Saved/Logs",
+            "/arkse/ShooterGame/Saved/Logs",
+            "/ShooterGame/Saved/Logs"
+          ],
+          "filePatterns": ["ShooterGame*.log", "*.log"]
+        }
+      }
+    },
+    "valheim": {
+      "name": "Valheim",
+      "platforms": {
+        "default": {
+          "paths": [
+            "/games/{serviceId}_1/ftproot/valheim/logs",
+            "/games/{userId}_1/ftproot/valheim/logs",
+            "/valheim/logs",
+            "/logs"
+          ],
+          "filePatterns": ["*.log", "server_log.txt"]
+        }
+      }
+    },
+    "rust": {
+      "name": "Rust",
+      "platforms": {
+        "default": {
+          "paths": [
+            "/games/{serviceId}_1/ftproot/rust/logs",
+            "/games/{userId}_1/ftproot/rust/logs",
+            "/rust/logs",
+            "/logs"
+          ],
+          "filePatterns": ["*.log", "output_log.txt"]
+        }
+      }
+    }
+  },
+  "defaultPaths": [
+    "/games/{serviceId}_1/ftproot",
+    "/games/{userId}_1/ftproot",
+    "/games/{serviceId}_1/noftp",
+    "/games/{userId}_1/noftp",
+    "/logs",
+    "/config"
+  ],
+  "pathVariables": {
+    "serviceId": "Service ID from Nitrado",
+    "userId": "User ID from Nitrado (e.g., ni8504127)"
+  }
+}

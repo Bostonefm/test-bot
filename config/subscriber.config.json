@@ -1,0 +1,192 @@
+{
+  "channelPermissions": {
+    "rules": {
+      "permissions": {
+        "@everyone": ["ViewChannel", "ReadMessageHistory"]
+      },
+      "topic": "Server rules and community guidelines - Click button to agree and unlock Player access"
+    },
+    "welcome-message": {
+      "permissions": {
+        "@everyone": ["ViewChannel", "ReadMessageHistory"]
+      },
+      "topic": "Automated welcome messages for new members - Welcome to the server!"
+    },
+    "server-updates": {
+      "permissions": {
+        "@everyone": ["ViewChannel", "ReadMessageHistory"]
+      },
+      "topic": "Official server announcements and important updates"
+    },
+    "link": {
+      "permissions": {
+        "Player": ["ViewChannel", "ReadMessageHistory", "SendMessages", "UseApplicationCommands"],
+        "Linked Player": ["ViewChannel", "ReadMessageHistory", "SendMessages", "UseApplicationCommands"],
+        "Verified Player": ["ViewChannel", "ReadMessageHistory", "SendMessages", "UseApplicationCommands"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Link your Discord to your DayZ character using /link-player"
+    },
+    "satellite": {
+      "permissions": {
+        "Player": ["ViewChannel", "ReadMessageHistory"],
+        "Linked Player": ["ViewChannel", "ReadMessageHistory"],
+        "Verified Player": ["ViewChannel", "ReadMessageHistory"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Real-time player tracking - Players spotted by satellite can link their character"
+    },
+    "chat": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "General community chat for all members"
+    },
+    "economy": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Grizzly Coins economy system and transactions"
+    },
+    "general-shop": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Purchase items and services using Grizzly Coins"
+    },
+    "event-feed": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Automated server event notifications"
+    },
+    "connections-feed": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Player join/leave notifications from DayZ server"
+    },
+    "killfeed": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "PvP combat kill notifications with weapon details"
+    },
+    "pvefeed": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "PvE combat and zombie kill tracking"
+    },
+    "flag-feed": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "DayZ faction territory and flag event notifications"
+    },
+    "faction-logs": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Detailed faction activity and territorial control tracking"
+    },
+    "available-quests": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Daily and weekly challenges to earn rewards"
+    },
+    "placed-items-feed": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Base building - Item placement notifications"
+    },
+    "built-items-feed": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Base building - Construction activity tracking"
+    },
+    "player-locations": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Player position tracking (admin only)"
+    },
+    "bot-commands": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory", "SendMessages", "UseApplicationCommands"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Use Grizzly Bot commands here - /help for command list"
+    },
+    "support": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Create support tickets with /ticket-create"
+    },
+    "staff-bot-info": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Staff command reference and administrative guides"
+    },
+    "player-bot-info": {
+      "permissions": {
+        "Verified Player": ["ViewChannel", "ReadMessageHistory"],
+        "Moderator": ["ViewChannel", "ReadMessageHistory"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Player command reference and getting started guide"
+    },
+    "admin-chat": {
+      "permissions": {
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Administrator-only discussions and planning"
+    },
+    "moderator-chat": {
+      "permissions": {
+        "Moderator": ["ViewChannel", "ReadMessageHistory", "SendMessages"],
+        "Admin": ["ViewChannel", "ReadMessageHistory", "SendMessages", "ManageMessages"]
+      },
+      "topic": "Moderator team communication and coordination"
+    }
+  },
+  "requiredRoles": ["Player", "Linked Player", "Verified Player", "Moderator", "Admin"]
+}

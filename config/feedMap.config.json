@@ -1,0 +1,52 @@
+{
+  "default": {
+    "killfeed": {
+      "patterns": ["killed by", "died.", "unconscious"],
+      "channel": "killfeed",
+      "emoji": "💀",
+      "color": "#ff4747"
+    },
+    "connections": {
+      "patterns": ["is connected", "is disconnected"],
+      "channel": "connections-feed",
+      "emoji": "👥",
+      "color": "#4caf50"
+    },
+    "flags": {
+      "patterns": [") raised ", "flag"],
+      "channel": "flag-feed",
+      "emoji": "🚩",
+      "color": "#e91e63"
+    },
+    "items": {
+      "patterns": [") placed ", ") built ", ") constructed "],
+      "channel": "placed-items-feed",
+      "emoji": "🔨",
+      "color": "#8bc34a"
+    },
+    "damage": {
+      "patterns": ["hit by"],
+      "channel": "pvefeed",
+      "emoji": "⚔️",
+      "color": "#ff6f00"
+    },
+    "world_events": {
+      "patterns": [
+        "StaticHeliCrash",
+        "StaticMilitaryConvoy",
+        "StaticPoliceCar",
+        "StaticPoliceSituation",
+        "StaticAirplaneCrate",
+        "StaticTrain"
+      ],
+      "exclude": [
+        "Animal",
+        "Infected",
+        "Vehicle",
+        "Ambient",
+        "Trajectory"
+      ],
+      "channel": "events"
+    }
+  }
+}
