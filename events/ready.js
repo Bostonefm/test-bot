@@ -10,116 +10,109 @@ const { db, getPool } = require('../modules/db.js');
 const logger = require('../config/logger.js');
 const { syncAllPermissions } = require('../utils/permissionSync.js');
 
+// NEW unified system
+const { logMonitoringManager } = require('../modules/logMonitoringManager.js');
+
 module.exports = (client) => {
   client.once('ready', async () => {
-
     // =====================================================
     // 1) Presence
     // =====================================================
     setPresence(client);
 
     // =====================================================
-    // 2) Restore OLD Log Monitoring Manager (from your old bot)
+    // 2) NEW Unified DayZ Log Monitor
     // =====================================================
-    logger.info("🔧 Restoring legacy Log Monitoring Manager...");
+    logger.info("🔧 Starting unified DayZ Log Monitoring Manager...");
 
     try {
-      const { logMonitoringManager } = require('../modules/logMonitoringManager.js');
       const pool = await getPool();
-
       const q = await pool.query(`
-        SELECT guild_id FROM nitrado_credentials
+        SELECT guild_id FROM nitrado_credentials 
         WHERE service_id IS NOT NULL
       `);
 
       if (!q.rows.length) {
-        logger.warn("⚠️ No guilds found with Nitrado credentials — skipping log monitor autostart.");
+        logger.warn("⚠️ No guilds with Nitrado credentials found — skipping log monitor.");
       } else {
         for (const row of q.rows) {
           const guildId = row.guild_id;
           const guild = client.guilds.cache.get(guildId);
 
           if (!guild) {
-            logger.warn(`⚠️ Guild ${guildId} is not in cache — skipping.`);
+            logger.warn(`⚠️ Guild ${guildId} missing in cache — skipping log monitor.`);
             continue;
           }
 
-          logger.info(`📡 Auto-starting legacy log monitoring for guild ${guild.name}`);
+          logger.info(`📡 Starting unified log monitoring for guild ${guild.name}...`);
           await logMonitoringManager.startMonitoring(guildId, client);
         }
 
-        logger.info("✅ Legacy Log Monitoring Manager fully initialized");
+        logger.info("✅ Unified Log Monitoring Manager fully initialized");
       }
     } catch (err) {
-      logger.error("❌ Failed to restore legacy Log Monitoring Manager:", err);
+      logger.error("❌ Failed to start unified Log Monitoring Manager:", err);
     }
 
     // =====================================================
-    // 3) Nitrado Polling Monitor (new bot system)
+    // 3) Nitrado Polling Monitor (status/cpu/mem/server)
     // =====================================================
     try {
       client.nitradoPollingMonitor = new NitradoPollingMonitor(client);
-      logger.info("Nitrado Polling Monitor initialized successfully.");
+      logger.info("Nitrado Polling Monitor initialized.");
 
       const { decrypt } = require('../utils/encryption.js');
 
       for (const [guildId, guild] of client.guilds.cache) {
-        const nitradoCreds = await db.getNitradoCredsByGuild(guildId);
+        const creds = await db.getNitradoCredsByGuild(guildId);
 
-        if (nitradoCreds?.encrypted_token && nitradoCreds?.service_id) {
-          const token = decrypt(
-            nitradoCreds.encrypted_token,
-            nitradoCreds.token_iv,
-            nitradoCreds.auth_tag
-          );
+        if (creds?.encrypted_token && creds?.service_id) {
+          const token = decrypt(creds.encrypted_token, creds.token_iv, creds.auth_tag);
 
           await client.nitradoPollingMonitor.startMonitoring(
-            nitradoCreds.service_id,
+            creds.service_id,
             token,
             guildId
           );
 
-          logger.info(
-            `✅ Auto-started Nitrado polling for ${guild.name} (service: ${nitradoCreds.service_id})`
-          );
+          logger.info(`✅ Auto-started Nitrado polling for ${guild.name}`);
         }
       }
-    } catch (error) {
-      logger.error("❌ Failed to start Nitrado Polling Monitor:", error);
+    } catch (err) {
+      logger.error("❌ Failed to initialize Nitrado polling:", err);
     }
 
     // =====================================================
-    // 4) Nitrado Resource + Notifications + Token refresh
+    // 4) Token Refresh / Notifications / Resource Monitor
     // =====================================================
-
     try {
       client.tokenAutoRefresh = new TokenAutoRefresh();
       await client.tokenAutoRefresh.start();
-      logger.info('✅ Token auto-refresh service started successfully');
+      logger.info('✅ Token auto-refresh running');
     } catch (err) {
-      logger.error('❌ Failed to initialize token auto-refresh:', err);
+      logger.error('❌ Token auto-refresh failed:', err);
     }
 
     try {
       const NitradoNotificationsMonitor = require('../modules/nitradoNotifications.js');
       client.nitradoNotifications = new NitradoNotificationsMonitor(client);
       await client.nitradoNotifications.start();
-      logger.info('✅ Nitrado notifications monitor started successfully');
+      logger.info('✅ Notifications monitor running');
     } catch (err) {
-      logger.error('❌ Failed to initialize notifications monitor:', err);
+      logger.error('❌ Notifications monitor failed:', err);
     }
 
     try {
       const NitradoResourceMonitor = require('../modules/nitradoResourceMonitor.js');
       client.nitradoResources = new NitradoResourceMonitor(client);
       await client.nitradoResources.start();
-      logger.info('✅ Nitrado resource monitor started successfully');
+      logger.info('✅ Resource monitor running');
     } catch (err) {
-      logger.error('❌ Failed to initialize resource monitor:', err);
+      logger.error('❌ Resource monitor failed:', err);
     }
 
     // =====================================================
-    // 5) Tier, Privacy, Scheduler
+    // 5) Tier Manager / Privacy Manager / Scheduler
     // =====================================================
     const poolInstance = await getPool();
     client.tierManager = new TierManager(poolInstance, logger);
@@ -128,30 +121,30 @@ module.exports = (client) => {
     try {
       const { initializeScheduler } = require('../services/scheduler.js');
       initializeScheduler();
-      logger.info('✅ Scheduled cleanup tasks initialized');
+      logger.info("✅ Scheduled cleanup tasks ready");
     } catch (err) {
-      logger.error('❌ Failed to initialize scheduler:', err);
+      logger.error("❌ Scheduler initialization failed:", err);
     }
 
     // =====================================================
-    // 6) Sync permissions after startup
+    // 6) Permission Sync
     // =====================================================
     setTimeout(async () => {
       logger.info("🔐 Starting permission sync...");
-      const syncResults = await syncAllPermissions(client);
-      const totalSynced = syncResults.reduce((sum, r) => sum + (r.synced || 0), 0);
-      logger.info(`🔐 Permission sync complete: ${totalSynced} channels updated across ${syncResults.length} guilds`);
+      const results = await syncAllPermissions(client);
+
+      const totalSynced = results.reduce((a, r) => a + (r.synced || 0), 0);
+      logger.info(`🔐 Permissions synced: ${totalSynced} channels across ${results.length} guilds`);
     }, 5000);
 
     // =====================================================
     // 7) Diagnostics
     // =====================================================
     await runDiagnostics(client);
-
   });
 };
 
-
+//
 // ==========================
 // Helpers
 // ==========================
@@ -162,11 +155,11 @@ function setPresence(client) {
   let activityText = defaultStatus;
 
   if (guilds.size > 0) {
-    const guildNames = guilds.map(g => g.name);
+    const names = guilds.map(g => g.name);
     const isInGCC = guilds.has(gccGuildId);
 
     if (isInGCC && guilds.size === 1) activityText = 'Grizzly Command Central';
-    else if (guilds.size === 1) activityText = `${guildNames[0]} | /help`;
+    else if (guilds.size === 1) activityText = `${names[0]} | /help`;
     else if (isInGCC) activityText = `GCC + ${guilds.size - 1} Servers`;
     else activityText = `${guilds.size} DayZ Servers | /help`;
   }
@@ -187,12 +180,10 @@ async function runDiagnostics(client) {
 
     const start = Date.now();
     await db.query('SELECT 1');
-    const latency = Date.now() - start;
-    diagnostics.push(`✅ Database Connected (${latency} ms)`);
+    diagnostics.push(`✅ Database Connected (${Date.now() - start} ms)`);
 
-    diagnostics.push('🟢 System Ready – All critical modules checked.');
-    logger.info('Startup diagnostics completed successfully.');
-  } catch (error) {
-    logger.error('Startup diagnostics failed:', error);
+    logger.info("Startup diagnostics completed successfully.");
+  } catch (err) {
+    logger.error("Startup diagnostics failed:", err);
   }
 }
