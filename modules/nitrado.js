@@ -8,28 +8,26 @@ async function findDayzPath(serviceId) {
   ];
 
   //
-  // 2) Dynamic prefixes based on the real service ID
-  //    Example: serviceId = 12326241 → /games/12326241_1/noftp/dayzps/config
+  // 2) Dynamic prefixes that depend on the REAL serviceId
   //
   const dynamicPrefixes = [
-    `/games/${serviceId}_1/`,
-    `/games/${serviceId}/`,
-    '/'
+    `/games/${serviceId}_1/`,   // Most common on PS4
+    `/games/${serviceId}/`,     // Secondary fallback
+    '/'                          // Root fallback
   ];
 
   //
-  // 3) Build full path combinations
+  // 3) Build list of ALL possible paths
   //
   const possiblePaths = [];
 
-  // dynamic prefix paths
   for (const prefix of dynamicPrefixes) {
     for (const base of baseCandidates) {
-      possiblePaths.push(prefix + base);
+      possiblePaths.push(prefix + base);              // ex: /games/12326241_1/noftp/dayzps/config
     }
   }
 
-  // raw fallback paths
+  // Raw fallback paths (some servers use a different root)
   possiblePaths.push('/noftp/dayzps/config');
   possiblePaths.push('/ftproot/dayzps/config');
 
@@ -38,7 +36,7 @@ async function findDayzPath(serviceId) {
   );
 
   //
-  // 4) Test each candidate directory
+  // 4) Test each directory until we find one containing ADM/RPT logs
   //
   for (const p of possiblePaths) {
     try {
@@ -47,29 +45,29 @@ async function findDayzPath(serviceId) {
 
       if (!entries.length) continue;
 
-      // Normalize each entry (VERY IMPORTANT)
+      // Normalize file entries
       const normalized = entries.map(f => ({
         name: f.name || f.filename || '',
         size: f.size || 0,
         modified_at: f.modified_at || f.created_at || 0
       }));
 
-      // Detect DayZ logs
+      // Detect DayZ logs (PS4 format)
       const hasLogs = normalized.some(f =>
-        f.name.match(/DayZServer_PS4.*\.(ADM|RPT)$/)
+        /^DayZServer_PS4.*\.(ADM|RPT)$/i.test(f.name)
       );
 
       if (hasLogs) {
         logger.info(`📂 [Nitrado] Found DayZ log directory: ${p}`);
         return p;
       }
-    } catch (_) {
-      // Ignore inaccessible paths
+    } catch (err) {
+      // Ignore inaccessible paths — continue testing others
     }
   }
 
   //
-  // 5) None found
+  // 5) No usable path found
   //
   logger.warn(`⚠️ [Nitrado] No working DayZ log folder detected for service ${serviceId}`);
   return null;
