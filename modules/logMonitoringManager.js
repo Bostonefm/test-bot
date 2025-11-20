@@ -6,14 +6,12 @@ const { createNitradoAPI } = require('./nitrado.js');
 
 const { DayZLogAnalyzer } = require('./logAnalyzer.js');
 const { NitradoLogProcessor } = require('./nitradoLogProcessor.js');
-
-// Unified feed routing (auto-detect patterns → send to channels)
 const { routeLogEvent } = require('./logRouter.js');
 
 class LogMonitoringManager {
   constructor() {
-    this.activeMonitors = new Map();     // guildId → { intervalId, … }
-    this.filePositions = new Map();      // guildId:filename → { size, modified }
+    this.activeMonitors = new Map();   // guildId → { intervalId, … }
+    this.filePositions = new Map();    // guildId:filename → { size, modified }
 
     this.logAnalyzer = new DayZLogAnalyzer();
     this.systemProcessor = new NitradoLogProcessor();
@@ -35,7 +33,7 @@ class LogMonitoringManager {
       const { serviceId, token } = credentials;
       const api = createNitradoAPI(token);
 
-      // 🔍 NEW: Auto-detect the correct DayZ directory
+      // 🔍 Auto-detect the correct DayZ directory
       const basePath = await api.findDayzPath(serviceId);
       if (!basePath) throw new Error('Unable to detect valid DayZ log directory');
 
@@ -46,19 +44,21 @@ class LogMonitoringManager {
         api,
         basePath,
         client,
-        interval: opts.interval || 60 * 1000, // check every 60 sec (safe)
+        interval: opts.interval || 60_000, // check every 60 sec
       };
 
       monitor.intervalId = setInterval(() => {
-        this.check(monitor);
+        this.check(monitor).catch(err =>
+          logger.warn(`⚠️ Periodic log check failed for guild ${guildId}: ${err.message}`)
+        );
       }, monitor.interval);
 
       this.activeMonitors.set(guildId, monitor);
 
-      logger.info(`📂 Log monitoring started for guild ${guildId}`);
+      logger.info(`📂 Log monitoring started for guild ${guildId} at ${basePath}`);
       await this.check(monitor); // run immediately
 
-      return { success: true };
+      return { success: true, basePath };
     } catch (err) {
       logger.error(`❌ Failed to start log monitoring manager: ${err.message}`);
       return { success: false, error: err.message };
@@ -87,17 +87,23 @@ class LogMonitoringManager {
     const guild = client.guilds.cache.get(guildId);
 
     if (!guild) {
-      logger.warn(`⚠️ Guild ${guildId} missing from cache`);
+      logger.warn(`⚠️ Guild ${guildId} missing from cache; stopping monitor.`);
+      this.stopMonitoring(guildId);
       return;
     }
 
     try {
-      const res = await api.listFiles(serviceId, basePath);
-      const files = res.data?.entries || [];
+      // IMPORTANT: listFiles() returns the API "data" object, not axios response
+      const listing = await api.listFiles(serviceId, basePath);
+      const files = listing.data?.entries || listing.entries || [];
 
-      const logFiles = files.filter(f =>
-        (f.name || '').match(/DayZServer_PS4.*\.(ADM|RPT)$/)
-      );
+      const logFiles = files
+        .map(f => ({
+          name: f.name || f.filename || '',
+          size: f.size || 0,
+          modified_at: f.modified_at || f.created_at || 0,
+        }))
+        .filter(f => f.name.match(/DayZServer_PS4.*\.(ADM|RPT)$/));
 
       if (!logFiles.length) {
         logger.warn(`⚠️ No DayZ log files found in ${basePath}`);
@@ -123,23 +129,21 @@ class LogMonitoringManager {
 
     const name = file.name;
     const size = file.size || 0;
-    const modified = new Date(file.modified_at * 1000);
+    const modifiedSec = file.modified_at || 0;
+    const modified = modifiedSec ? new Date(modifiedSec * 1000) : new Date();
 
     const key = `${guildId}:${name}`;
     const last = this.filePositions.get(key) || { size: 0, modified: new Date(0) };
 
+    // nothing new
     if (size <= last.size && modified <= last.modified) return;
 
     const path = `${basePath}/${name}`;
     const buf = await api.downloadFile(serviceId, path);
-
     if (!buf) return;
 
     const text = buf.toString('utf8');
-
-    const newContent = size > last.size
-      ? text.slice(last.size)
-      : text;
+    const newContent = size > last.size ? text.slice(last.size) : text;
 
     // 🔥 Analyze log content → events
     const events = this.logAnalyzer.processLogContent(newContent, path);
@@ -163,15 +167,12 @@ class LogMonitoringManager {
    *  PICK NEWEST ADM + NEWEST RPT
    * ============================================================ */
   pickLatestTwo(files) {
-    const adm = files
-      .filter(f => f.name.endsWith('.ADM'))
-      .sort((a, b) => b.modified_at - a.modified_at)[0];
+    const pick = ext =>
+      files
+        .filter(f => f.name.endsWith(ext))
+        .sort((a, b) => (b.modified_at || 0) - (a.modified_at || 0))[0];
 
-    const rpt = files
-      .filter(f => f.name.endsWith('.RPT'))
-      .sort((a, b) => b.modified_at - a.modified_at)[0];
-
-    return [adm, rpt].filter(Boolean);
+    return [pick('.ADM'), pick('.RPT')].filter(Boolean);
   }
 
   /* ============================================================
@@ -198,7 +199,8 @@ class LogMonitoringManager {
   }
 }
 
+const logMonitoringManager = new LogMonitoringManager();
 module.exports = {
   LogMonitoringManager,
-  logMonitoringManager: new LogMonitoringManager()
+  logMonitoringManager,
 };
