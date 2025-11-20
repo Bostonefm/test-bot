@@ -198,4 +198,7 @@ class LogMonitoringManager {
   }
 }
 
-module.exports = new LogMonitoringManager();
+module.exports = {
+  LogMonitoringManager,
+  logMonitoringManager: new LogMonitoringManager()
+};
