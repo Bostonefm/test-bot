@@ -150,3 +150,5 @@ function createNitradoAPI(token) {
  * BOTH to work.
  */
 module.exports = createNitradoAPI;
+module.exports.createNitradoAPI = createNitradoAPI;
+
