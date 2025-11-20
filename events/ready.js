@@ -12,67 +12,92 @@ const { syncAllPermissions } = require('../utils/permissionSync.js');
 
 module.exports = (client) => {
   client.once('ready', async () => {
-    logger.info(`Logged in as ${client.user.tag}!`);
+
+    // =====================================================
+    // 1) Presence
+    // =====================================================
     setPresence(client);
 
-   // =====================================================
-// 🟢 Nitrado Polling Monitor + Log Monitor Initialization
-// =====================================================
-try {
-  client.nitradoPollingMonitor = new NitradoPollingMonitor(client);
-  logger.info('Nitrado Polling Monitor initialized successfully.');
+    // =====================================================
+    // 2) Restore OLD Log Monitoring Manager (from your old bot)
+    // =====================================================
+    logger.info("🔧 Restoring legacy Log Monitoring Manager...");
 
-  const { decrypt } = require('../utils/encryption.js');
-  const { db } = require('../modules/db.js');
+    try {
+      const { logMonitoringManager } = require('../modules/logMonitoringManager.js');
+      const pool = await getPool();
 
-  for (const [guildId, guild] of client.guilds.cache) {
-    const nitradoCreds = await db.getNitradoCredsByGuild(guildId);
+      const q = await pool.query(`
+        SELECT guild_id FROM nitrado_credentials
+        WHERE service_id IS NOT NULL
+      `);
 
-    if (nitradoCreds?.encrypted_token && nitradoCreds?.service_id) {
-      const token = decrypt(
-        nitradoCreds.encrypted_token,
-        nitradoCreds.token_iv,
-        nitradoCreds.auth_tag
-      );
+      if (!q.rows.length) {
+        logger.warn("⚠️ No guilds found with Nitrado credentials — skipping log monitor autostart.");
+      } else {
+        for (const row of q.rows) {
+          const guildId = row.guild_id;
+          const guild = client.guilds.cache.get(guildId);
 
-      await client.nitradoPollingMonitor.startMonitoring(
-        nitradoCreds.service_id,
-        token,
-        guildId
-      );
-      logger.info(
-        `✅ Auto-started Nitrado polling for ${guild.name} (service: ${nitradoCreds.service_id})`
-      );
+          if (!guild) {
+            logger.warn(`⚠️ Guild ${guildId} is not in cache — skipping.`);
+            continue;
+          }
+
+          logger.info(`📡 Auto-starting legacy log monitoring for guild ${guild.name}`);
+          await logMonitoringManager.startMonitoring(guildId, client);
+        }
+
+        logger.info("✅ Legacy Log Monitoring Manager fully initialized");
+      }
+    } catch (err) {
+      logger.error("❌ Failed to restore legacy Log Monitoring Manager:", err);
     }
-  }
-
-  // ✅ Unified Log Monitoring Manager (handles killfeed, placed items, etc.)
-  const { logMonitoringManager } = require('../modules/logMonitoringManager.js');
-  try {
-    for (const [guildId] of client.guilds.cache) {
-      await logMonitoringManager.startMonitoring(guildId, client);
-    }
-    logger.info('✅ Log monitoring manager started successfully for all guilds.');
-  } catch (err) {
-    logger.error('❌ Failed to start log monitoring manager:', err);
-  }
-
-  logger.info('✅ Polling monitor initialized and auto-start complete!');
-} catch (error) {
-  logger.error('❌ Failed to initialize Nitrado monitors:', error);
-}
-
-
 
     // =====================================================
-    // 🟢 Other Services (Token Refresh, Notifications, etc.)
+    // 3) Nitrado Polling Monitor (new bot system)
     // =====================================================
+    try {
+      client.nitradoPollingMonitor = new NitradoPollingMonitor(client);
+      logger.info("Nitrado Polling Monitor initialized successfully.");
+
+      const { decrypt } = require('../utils/encryption.js');
+
+      for (const [guildId, guild] of client.guilds.cache) {
+        const nitradoCreds = await db.getNitradoCredsByGuild(guildId);
+
+        if (nitradoCreds?.encrypted_token && nitradoCreds?.service_id) {
+          const token = decrypt(
+            nitradoCreds.encrypted_token,
+            nitradoCreds.token_iv,
+            nitradoCreds.auth_tag
+          );
+
+          await client.nitradoPollingMonitor.startMonitoring(
+            nitradoCreds.service_id,
+            token,
+            guildId
+          );
+
+          logger.info(
+            `✅ Auto-started Nitrado polling for ${guild.name} (service: ${nitradoCreds.service_id})`
+          );
+        }
+      }
+    } catch (error) {
+      logger.error("❌ Failed to start Nitrado Polling Monitor:", error);
+    }
+
+    // =====================================================
+    // 4) Nitrado Resource + Notifications + Token refresh
+    // =====================================================
+
     try {
       client.tokenAutoRefresh = new TokenAutoRefresh();
       await client.tokenAutoRefresh.start();
       logger.info('✅ Token auto-refresh service started successfully');
-    } catch (error) {
-      logger.error('❌ Failed to initialize token auto-refresh:', error);
+    } catch (err) {
+      logger.error('❌ Failed to initialize token auto-refresh:', err);
     }
 
     try {
@@ -80,8 +105,8 @@ try {
       client.nitradoNotifications = new NitradoNotificationsMonitor(client);
       await client.nitradoNotifications.start();
       logger.info('✅ Nitrado notifications monitor started successfully');
-    } catch (error) {
-      logger.error('❌ Failed to initialize notifications monitor:', error);
+    } catch (err) {
+      logger.error('❌ Failed to initialize notifications monitor:', err);
     }
 
     try {
@@ -89,12 +114,12 @@ try {
       client.nitradoResources = new NitradoResourceMonitor(client);
       await client.nitradoResources.start();
       logger.info('✅ Nitrado resource monitor started successfully');
-    } catch (error) {
-      logger.error('❌ Failed to initialize resource monitor:', error);
+    } catch (err) {
+      logger.error('❌ Failed to initialize resource monitor:', err);
     }
 
     // =====================================================
-    // 🟢 Tier, Privacy, Scheduler, Permissions, Diagnostics
+    // 5) Tier, Privacy, Scheduler
     // =====================================================
     const poolInstance = await getPool();
     client.tierManager = new TierManager(poolInstance, logger);
@@ -104,33 +129,40 @@ try {
       const { initializeScheduler } = require('../services/scheduler.js');
       initializeScheduler();
       logger.info('✅ Scheduled cleanup tasks initialized');
-    } catch (error) {
-      logger.error('❌ Failed to initialize scheduler:', error);
+    } catch (err) {
+      logger.error('❌ Failed to initialize scheduler:', err);
     }
 
+    // =====================================================
+    // 6) Sync permissions after startup
+    // =====================================================
     setTimeout(async () => {
-      logger.info('🔐 Starting permission sync...');
+      logger.info("🔐 Starting permission sync...");
       const syncResults = await syncAllPermissions(client);
       const totalSynced = syncResults.reduce((sum, r) => sum + (r.synced || 0), 0);
       logger.info(`🔐 Permission sync complete: ${totalSynced} channels updated across ${syncResults.length} guilds`);
     }, 5000);
 
+    // =====================================================
+    // 7) Diagnostics
+    // =====================================================
     await runDiagnostics(client);
-    logger.info('Bot is ready and Log Monitor initialized!');
+
   });
 };
 
-// === Helper Functions (same as before) ===
 
+// ==========================
+// Helpers
+// ==========================
 function setPresence(client) {
   const defaultStatus = 'Grizzly Network | /help';
   const gccGuildId = process.env.GRIZZLY_COMMAND_GUILD_ID;
   const guilds = client.guilds.cache;
-
   let activityText = defaultStatus;
 
   if (guilds.size > 0) {
-    const guildNames = guilds.map((g) => g.name);
+    const guildNames = guilds.map(g => g.name);
     const isInGCC = guilds.has(gccGuildId);
 
     if (isInGCC && guilds.size === 1) activityText = 'Grizzly Command Central';
@@ -153,39 +185,12 @@ async function runDiagnostics(client) {
     const discordStatus = client.ws.status === 0 ? '✅' : '❌';
     diagnostics.push(`${discordStatus} Discord Connected`);
 
-    try {
-      const start = Date.now();
-      await db.query('SELECT 1');
-      const latency = Date.now() - start;
-      diagnostics.push(`✅ Database Connected (${latency} ms)`);
-    } catch (err) {
-      diagnostics.push('❌ Database Connection Failed');
-      logger.error('Database test failed:', err);
-    }
+    const start = Date.now();
+    await db.query('SELECT 1');
+    const latency = Date.now() - start;
+    diagnostics.push(`✅ Database Connected (${latency} ms)`);
 
-    if (client.nitradoPollingMonitor) diagnostics.push('✅ Nitrado Polling Active');
-    else diagnostics.push('⚠️ Nitrado Polling Inactive');
-
-    if (client.nitradoNotifications) diagnostics.push('✅ Nitrado Notifications Active');
-    else diagnostics.push('⚠️ Nitrado Notifications Inactive');
-
-    if (client.nitradoResources) diagnostics.push('✅ Nitrado Resource Monitor Active');
-    else diagnostics.push('⚠️ Nitrado Resource Monitor Inactive');
-
-    diagnostics.push('✅ Scheduled Cleanup Active (3 AM daily)');
-    if (process.env.PATREON_CLIENT_ID) diagnostics.push('✅ Patreon Config Loaded');
-    else diagnostics.push('⚠️ Patreon Not Configured');
-
-    const cmdCount = client.commands?.size || 0;
-    diagnostics.push(`✅ ${cmdCount} Commands Registered`);
-
-    const divider = '──────────────────────────────';
-    console.log('\n🚀 Grizzly Bot Startup Summary');
-    console.log(divider);
-    diagnostics.forEach((line) => console.log(line));
-    console.log(divider);
-    console.log('🟢 System Ready – All critical modules checked.\n');
-
+    diagnostics.push('🟢 System Ready – All critical modules checked.');
     logger.info('Startup diagnostics completed successfully.');
   } catch (error) {
     logger.error('Startup diagnostics failed:', error);
