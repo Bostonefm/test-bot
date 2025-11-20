@@ -1,232 +1,90 @@
+// modules/nitrado.js
 const axios = require('axios');
-const path = require('path');
-const logger = require('../utils/logger.js');
-const { NitradoAuth } = require('./nitradoAuth.js');
-const { NitradoFiles } = require('./nitradoFiles.js');
-const { NitradoConsole } = require('./nitradoConsole.js');
+const logger = require('../config/logger.js');   // <-- REQUIRED
 
-class NitradoAPI {
-  constructor(token) {
-    this.token = token;
-    this.baseURL = 'https://api.nitrado.net';
-    this.rateLimitQueue = new Map();
-
-    // ✅ define executeWithBackoff FIRST so bind() is safe
-    this.executeWithBackoff = this._createBackoffHandler();
-
-    // ✅ now safely construct child modules
-    this.auth = new NitradoAuth(this.baseURL);
-    this.files = new NitradoFiles(token, this.baseURL, this.executeWithBackoff);
-    this.console = new NitradoConsole(token, this.baseURL, this.executeWithBackoff);
-  }
-
-  /**
-   * 🛡️ Creates a safe backoff wrapper to retry API requests
-   */
-  _createBackoffHandler() {
-    return async (requestFn, endpoint = 'unknown', maxRetries = 3, baseDelay = 1000) => {
-      let attempt = 0;
-      while (attempt <= maxRetries) {
-        try {
-          return await requestFn();
-        } catch (error) {
-          const code = error.response?.status;
-          const retryable = [429, 500, 502, 503, 504].includes(code);
-          if (!retryable) throw error;
-
-          attempt++;
-          if (attempt > maxRetries) throw error;
-
-          const delay = Math.min(baseDelay * Math.pow(2, attempt - 1), 30000);
-          logger.warn(
-            `[NitradoAPI] ⚠️ Retry ${attempt}/${maxRetries} for ${endpoint} after ${delay}ms (${code})`
-          );
-          await new Promise((r) => setTimeout(r, delay));
-        }
-      }
-    };
-  }
-
-  // ============================================================
-  // ✅ File Operations Bridge (connects NitradoAPI ↔ NitradoFiles)
-  // ============================================================
-  async listFiles(serviceId, path = '/', fetchAll = true) {
-    if (!this.files || typeof this.files.listFiles !== 'function') {
-      logger.error('[NitradoAPI] NitradoFiles not initialized properly.');
-      throw new Error('NitradoFiles module not available');
-    }
-
-    try {
-      return await this.files.listFiles(serviceId, path, fetchAll);
-    } catch (err) {
-      logger.error(`[NitradoAPI] listFiles(${path}) failed: ${err.message}`);
-      throw err;
-    }
-  }
-
-  async downloadFile(serviceId, filePath) {
-    if (!this.files || typeof this.files.downloadFile !== 'function') {
-      logger.error('[NitradoAPI] NitradoFiles not initialized properly.');
-      throw new Error('NitradoFiles module not available');
-    }
-
-    try {
-      return await this.files.downloadFile(serviceId, filePath);
-    } catch (err) {
-      logger.error(`[NitradoAPI] downloadFile(${filePath}) failed: ${err.message}`);
-      throw err;
-    }
-  }
-
-  // ============================================================
-  // ✅ Everything below this line is unchanged from your version
-  // ============================================================
-
-  /**
-   * Get specific service details
-   */
-  async getService(serviceId) {
-    return await this.nitradoRequest('GET', `/services/${serviceId}`);
-  }
-
-  /**
-   * ✅ Unified getServiceInfo() alias
-   */
-  async getServiceInfo(serviceId) {
-    try {
-      const response = await this.getService(serviceId);
-      const service =
-        response.data?.data?.service ||
-        response.data?.service ||
-        response.data ||
-        null;
-
-      if (!service) throw new Error('Invalid Nitrado API response (no service data)');
-
-      return {
-        id: service.id,
-        status: service.status || 'unknown',
-        type: service.type || 'unknown',
-        details: service.details || {},
-        raw: service,
-      };
-    } catch (error) {
-      logger.error(`[NitradoAPI] getServiceInfo(${serviceId}) failed: ${error.message}`);
-      return { status: 'unknown', error: error.message };
-    }
-  }
-
-  /**
-   * Get gameserver details
-   */
-  async getGameserver(serviceId) {
-    return await this.nitradoRequest('GET', `/services/${serviceId}/gameservers`);
-  }
-
-  /**
-   * Core request handler (used by other modules)
-   */
-  async nitradoRequest(method, endpoint, options = {}, rateLimitKey = null) {
-    const { params, data, headers = {}, responseType = 'json', timeout = 30000 } = options;
-    const rateLimitEndpoint = rateLimitKey || endpoint.split('?')[0];
-
-    const config = {
-      method: method.toUpperCase(),
-      url: endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`,
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-        'Content-Type': 'application/json',
-        'User-Agent': 'GrizzlyBot/1.0',
-        ...headers,
-      },
-      timeout,
-      responseType,
-    };
-
-    if (params) config.params = params;
-    if (data) config.data = data;
-
-    return await this.executeWithBackoff(() => axios(config), rateLimitEndpoint)
-      .then((response) => {
-        if (response.status < 200 || response.status >= 300) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        return responseType === 'json' ? response.data : response;
-      })
-      .catch((error) => {
-        let message = 'Unknown error occurred';
-        let status = error.response?.status || null;
-
-        if (error.response) {
-          message =
-            error.response.data?.message ||
-            error.response.data?.error ||
-            error.response.statusText ||
-            `HTTP ${status} Error`;
-        } else if (error.request) {
-          message = 'Network error - no response received';
-        } else {
-          message = error.message;
-        }
-
-        logger.error(`Nitrado API Request Failed: ${method.toUpperCase()} ${endpoint}`, {
-          status,
-          message,
-          endpoint: rateLimitEndpoint,
-        });
-
-        const err = new Error(message);
-        err.status = status;
-        err.endpoint = endpoint;
-        err.originalError = error;
-        throw err;
-      });
-  }
-}
-
-// === safe factory function ===
 function createNitradoAPI(token) {
-  if (!token) throw new Error('Nitrado API token is required');
-  return new NitradoAPI(token);
-}
+  const http = axios.create({
+    baseURL: 'https://api.nitrado.net',
+    timeout: 20000,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+      'User-Agent': 'GrizzlyBot/2.0',
+    },
+    validateStatus: s => s >= 200 && s < 500,
+  });
 
-async function getNitradoToken(guildId, discordUserId, serviceId) {
-  const { NitradoAuthManager } = require('./nitradoAuth.js');
-  const authManager = new NitradoAuthManager();
-  try {
-    return await authManager.getToken(guildId, discordUserId, serviceId);
-  } catch (error) {
-    logger.error(`Failed to get Nitrado token: ${error.message}`);
-    throw error;
+  /**
+   * 🔍 Auto-detect DayZ log directory for a given Nitrado service.
+   * Searches all known paths and returns the first one with ADM/RPT logs.
+   */
+  async function findDayzPath(serviceId) {
+    const possiblePaths = [
+      '/games/ni8504127_1/noftp/dayzps/config',
+      '/games/ni8504127_1/ftproot/dayzps/config',
+      '/noftp/dayzps/config',
+      '/ftproot/dayzps/config'
+    ];
+
+    for (const p of possiblePaths) {
+      try {
+        const res = await listFiles(serviceId, p);
+        const entries = res.data?.entries || [];
+
+        const found = entries.some(f =>
+          (f.name || f.filename || '').match(/DayZServer_PS4.*\.(ADM|RPT)$/)
+        );
+
+        if (found) {
+          logger.info(`📂 [Nitrado] Found DayZ log directory: ${p}`);
+          return p;
+        }
+      } catch (err) {
+        // ignore invalid paths silently
+      }
+    }
+
+    logger.warn(`⚠️ [Nitrado] No working DayZ log folder detected for service ${serviceId}`);
+    return null;
   }
-}
 
-async function storeNitradoToken(guildId, discordUserId, serviceId, token, permissionLevel = 1) {
-  const { NitradoAuthManager } = require('./nitradoAuth.js');
-  const authManager = new NitradoAuthManager();
-  try {
-    return await authManager.storeToken(guildId, discordUserId, serviceId, token, permissionLevel);
-  } catch (error) {
-    logger.error(`Failed to store Nitrado token: ${error.message}`);
-    throw error;
+  async function listServices() {
+    const res = await http.get('/services');
+    if (res.status !== 200) throw new Error(res.data?.message || `HTTP ${res.status}`);
+    return res.data;
   }
-}
 
-async function checkNitradoPermission(guildId, discordUserId, serviceId, requiredLevel) {
-  const { NitradoAuthManager } = require('./nitradoAuth.js');
-  const authManager = new NitradoAuthManager();
-  try {
-    return await authManager.hasPermission(guildId, discordUserId, serviceId, requiredLevel);
-  } catch (error) {
-    logger.error(`Failed to check Nitrado permission: ${error.message}`);
-    return false;
+  async function getServiceInfo(serviceId) {
+    const res = await http.get(`/services/${serviceId}`);
+    if (res.status !== 200) throw new Error(res.data?.message || `HTTP ${res.status}`);
+    return res.data;
   }
+
+  async function listFiles(serviceId, path) {
+    const res = await http.get(`/services/${serviceId}/gameservers/file_server/list`, {
+      params: { directory: path },
+    });
+    if (res.status !== 200) throw new Error(res.data?.message || `HTTP ${res.status}`);
+    return res.data;
+  }
+
+  async function downloadFile(serviceId, path) {
+    const res = await http.get(`/services/${serviceId}/gameservers/file_server/download`, {
+      params: { file: path },
+      responseType: 'arraybuffer',
+    });
+    if (res.status !== 200) throw new Error(res.data?.message || `HTTP ${res.status}`);
+    return Buffer.from(res.data);
+  }
+
+  // IMPORTANT: expose findDayzPath
+  return {
+    listServices,
+    getServiceInfo,
+    listFiles,
+    downloadFile,
+    findDayzPath      // <-- REQUIRED
+  };
 }
 
-module.exports = {
-  NitradoAPI,
-  createNitradoAPI,
-  getNitradoToken,
-  storeNitradoToken,
-  checkNitradoPermission,
-};
+module.exports = { createNitradoAPI };
