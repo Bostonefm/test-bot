@@ -1,47 +1,60 @@
 async function findDayzPath(serviceId) {
-  // Multi-guild safe: these are only “known PS4 DayZ folder patterns”
-  // The service ID determines which "niXXXX" folder is correct.
+  //
+  // 1) Known DayZ PS4 folder patterns
+  //
   const baseCandidates = [
     'noftp/dayzps/config',
     'ftproot/dayzps/config'
   ];
 
-  // Try dynamic prefix paths based on serviceId
+  //
+  // 2) Dynamic prefixes based on the real service ID
+  //    Example: serviceId = 12326241 → /games/12326241_1/noftp/dayzps/config
+  //
   const dynamicPrefixes = [
-    `/games/${serviceId}_1/`,     // most common for PS4
-    `/games/${serviceId}/`,       // fallback
-    '/'                           // root fallback
+    `/games/${serviceId}_1/`,
+    `/games/${serviceId}/`,
+    '/'
   ];
 
-  // build combinations: dynamic prefix + base candidates
+  //
+  // 3) Build full path combinations
+  //
   const possiblePaths = [];
+
+  // dynamic prefix paths
   for (const prefix of dynamicPrefixes) {
     for (const base of baseCandidates) {
       possiblePaths.push(prefix + base);
     }
   }
 
-  // Also try raw paths directly (no prefix)
+  // raw fallback paths
   possiblePaths.push('/noftp/dayzps/config');
   possiblePaths.push('/ftproot/dayzps/config');
 
-  logger.info(`🔍 [Nitrado] Testing ${possiblePaths.length} possible log paths for service ${serviceId}...`);
+  logger.info(
+    `🔍 [Nitrado] Testing ${possiblePaths.length} possible log paths for service ${serviceId}...`
+  );
 
+  //
+  // 4) Test each candidate directory
+  //
   for (const p of possiblePaths) {
     try {
-      const res = await listFiles(serviceId, p);
-      const entries = res.data?.entries || [];
+      const listing = await listFiles(serviceId, p);
+      const entries = listing.data?.entries || listing.entries || [];
 
       if (!entries.length) continue;
 
-      // Normalize all entries — VERY IMPORTANT
+      // Normalize each entry (VERY IMPORTANT)
       const normalized = entries.map(f => ({
         name: f.name || f.filename || '',
         size: f.size || 0,
-        modified_at: f.modified_at || f.created_at || 0,
+        modified_at: f.modified_at || f.created_at || 0
       }));
 
-      // Check for DayZ log naming pattern
+      // Detect DayZ logs
       const hasLogs = normalized.some(f =>
         f.name.match(/DayZServer_PS4.*\.(ADM|RPT)$/)
       );
@@ -50,12 +63,14 @@ async function findDayzPath(serviceId) {
         logger.info(`📂 [Nitrado] Found DayZ log directory: ${p}`);
         return p;
       }
-
-    } catch (err) {
-      // Ignore invalid paths
+    } catch (_) {
+      // Ignore inaccessible paths
     }
   }
 
+  //
+  // 5) None found
+  //
   logger.warn(`⚠️ [Nitrado] No working DayZ log folder detected for service ${serviceId}`);
   return null;
 }
