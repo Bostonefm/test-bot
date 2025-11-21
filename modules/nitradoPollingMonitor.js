@@ -2,13 +2,12 @@
 /**
  * ============================================================
  * 📡 Grizzly Bot — Nitrado Polling Monitor (Safe Version)
- * Monitors Nitrado services every few minutes for status changes
- * Compatible with "new NitradoPollingMonitor(client)"
  * ============================================================
  */
 
 const loggerBase = require('../utils/logger.js');
 const logger = loggerBase.tag?.('NitradoPollingMonitor') ?? loggerBase;
+
 const { getPool } = require('../utils/db.js');
 const { createNitradoAPI } = require('./nitrado.js');
 const { decrypt } = require('../utils/encryption.js');
@@ -23,7 +22,7 @@ class NitradoPollingMonitor {
   }
 
   /**
-   * Start monitoring all active Nitrado services in the database
+   * Start polling
    */
   async startMonitoring(serviceId = null, token = null, guildId = null) {
     if (this.running) {
@@ -37,20 +36,19 @@ class NitradoPollingMonitor {
     try {
       this.pool = await getPool();
     } catch (err) {
-      logger.error('[NitradoPollingMonitor] ❌ Failed to connect to database:', err.message);
+      logger.error('[NitradoPollingMonitor] ❌ DB connection failed:', err.message);
       return;
     }
 
-    // Define the polling cycle
     const tick = async () => {
       try {
-        // Single service startup mode
+        // SINGLE SERVICE MODE
         if (serviceId && token) {
           await this._pollService(serviceId, token, guildId);
           return;
         }
 
-        // Otherwise, poll all stored Nitrado credentials
+        // MULTI-GUILD MODE
         const { rows } = await this.pool.query(`
           SELECT guild_id, service_id, encrypted_token, token_iv, auth_tag
           FROM nitrado_credentials
@@ -58,75 +56,80 @@ class NitradoPollingMonitor {
         `);
 
         if (!rows.length) {
-          logger.warn('[NitradoPollingMonitor] ⚠️ No active Nitrado credentials found.');
+          logger.warn('[NitradoPollingMonitor] ⚠️ No Nitrado credentials found.');
           return;
         }
 
-        for (const cred of rows) {
+        for (const row of rows) {
           try {
-            const token = decrypt(cred.encrypted_token, cred.token_iv, cred.auth_tag);
-            await this._pollService(cred.service_id, token, cred.guild_id);
+            const token = decrypt(row.encrypted_token, row.token_iv, row.auth_tag);
+            await this._pollService(row.service_id, token, row.guild_id);
           } catch (err) {
-            logger.warn(`[NitradoPollingMonitor] ⚠️ Polling failed for ${cred.service_id}: ${err.message}`);
+            logger.warn(`[NitradoPollingMonitor] ⚠️ Poll fail (${row.service_id}): ${err.message}`);
           }
         }
       } catch (err) {
-        logger.error(`[NitradoPollingMonitor] ❌ Polling cycle failed: ${err.message}`);
+        logger.error(`[NitradoPollingMonitor] ❌ Polling cycle error: ${err.message}`);
       }
     };
 
-    // Run first check immediately, then on an interval
-    await tick().catch((err) => logger.error('[NitradoPollingMonitor] Initial tick failed:', err.message));
+    // FIRST RUN
+    await tick().catch(err => logger.error('[NitradoPollingMonitor] Initial tick failed:', err.message));
 
-    this.timer = setInterval(async () => {
-      await tick().catch((err) => logger.error('[NitradoPollingMonitor] Scheduled tick failed:', err.message));
-    }, this.interval);
+    // INTERVAL
+    this.timer = setInterval(() => tick(), this.interval);
   }
+
 
   /**
    * Poll a single service
    */
   async _pollService(serviceId, token, guildId) {
+    let api;
+
     try {
-      // ✅ Defensive construction (auto-fix for undefined.bind)
-      let api;
-      try {
-        api = createNitradoAPI(token);
-      } catch (err) {
-        logger.error(`[NitradoPollingMonitor] ⚠️ Failed to create NitradoAPI instance: ${err.message}`);
-        return;
-      }
-
-      if (!api?.getServiceInfo) {
-        logger.warn('[NitradoPollingMonitor] ⚠️ API instance missing getServiceInfo(), skipping...');
-        return;
-      }
-
-      const info = await api.getServiceInfo(serviceId);
-      const status = info?.status || 'unknown';
-
-      if (status !== 'active' && status !== 'running') {
-        logger.warn(`[NitradoPollingMonitor] ⚠️ Service ${serviceId} is ${status}`);
-        await this._notifyGuild(guildId, status);
-      } else {
-        logger.debug(`[NitradoPollingMonitor] ✅ Service ${serviceId} active`);
-      }
+      api = createNitradoAPI(token);
     } catch (err) {
-      logger.error(`[NitradoPollingMonitor] ❌ Error polling service ${serviceId}: ${err.message}`);
+      logger.error(`[NitradoPollingMonitor] ❌ Failed to create Nitrado API: ${err.message}`);
+      return;
     }
+
+    let info;
+    try {
+      info = await api.getServiceInfo(serviceId);
+    } catch (err) {
+      logger.error(`[NitradoPollingMonitor] ❌ Could not fetch service info: ${err.message}`);
+      return;
+    }
+
+    let status = info?.status || 'unknown';
+    status = String(status).toLowerCase();
+
+    // THESE STATES ARE HEALTHY
+    const healthyStates = ['active', 'running', 'success', 'ok', 'online'];
+
+    if (healthyStates.includes(status)) {
+      logger.debug(`[NitradoPollingMonitor] ✅ Service ${serviceId} healthy (${status})`);
+      return;
+    }
+
+    // ONLY SEND ALERT IF UNHEALTHY
+    logger.warn(`[NitradoPollingMonitor] ⚠️ Service ${serviceId} is ${status}`);
+    await this._notifyGuild(guildId, status);
   }
 
+
   /**
-   * Notify guild of service issues
+   * Notify guild
    */
   async _notifyGuild(guildId, status) {
     const guild = this.client.guilds.cache.get(guildId);
     if (!guild) return;
 
     const adminChannel =
-      guild.channels.cache.find((c) => c.name.includes('admin')) ||
+      guild.channels.cache.find(c => c.name.includes('admin')) ||
       guild.systemChannel ||
-      guild.channels.cache.find((c) => c.type === 0);
+      guild.channels.cache.find(c => c.type === 0);
 
     if (!adminChannel) return;
 
@@ -137,20 +140,21 @@ class NitradoPollingMonitor {
           title: '⚠️ Nitrado Service Alert',
           description: `Your Nitrado service is currently **${status.toUpperCase()}**.`,
           footer: { text: 'Grizzly Bot - Nitrado Polling Monitor' },
-          timestamp: new Date().toISOString(),
-        },
-      ],
+          timestamp: new Date().toISOString()
+        }
+      ]
     });
   }
 
   /**
-   * Stop the monitor
+   * Stop monitor
    */
   stopMonitoring() {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
     this.running = false;
-    logger.info('[NitradoPollingMonitor] 🧹 Polling Monitor stopped.');
+
+    logger.info('[NitradoPollingMonitor] 🧹 Polling stopped.');
   }
 }
 
