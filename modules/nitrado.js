@@ -17,13 +17,22 @@ function createNitradoAPI(token) {
     validateStatus: (s) => s >= 200 && s < 500,
   });
 
-  /* ============================================================
+   /* ============================================================
    * 🔍 Auto-detect DayZ log directory
-   * Multi-guild safe — uses the REAL serviceId dynamically.
+   * Multi-guild safe, but with your known PS4 path first.
    * ============================================================ */
   async function findDayzPath(serviceId) {
     //
-    // 1) base PS4 folder options
+    // 0) Known working path for YOUR PS4 server (False Dawn)
+    //    Safe for other guilds – if it doesn’t exist, we just skip it.
+    //
+    const knownPaths = [
+      '/games/ni8504127_1/noftp/dayzps/config',
+      '/games/ni8504127_1/ftproot/dayzps/config',
+    ];
+
+    //
+    // 1) Base PS4 folder options
     //
     const baseCandidates = [
       'noftp/dayzps/config',
@@ -31,7 +40,8 @@ function createNitradoAPI(token) {
     ];
 
     //
-    // 2) dynamic prefixes derived from serviceId
+    // 2) Dynamic prefixes derived from serviceId
+    //    (these help for *other* servers in the future)
     //
     const dynamicPrefixes = [
       `/games/${serviceId}_1/`,
@@ -40,9 +50,9 @@ function createNitradoAPI(token) {
     ];
 
     //
-    // 3) build full search list
+    // 3) Build full search list (known paths first!)
     //
-    const possiblePaths = [];
+    const possiblePaths = [...knownPaths];
 
     for (const prefix of dynamicPrefixes) {
       for (const base of baseCandidates) {
@@ -84,7 +94,7 @@ function createNitradoAPI(token) {
           logger.info(`📂 [Nitrado] Found DayZ log directory: ${p}`);
           return p;
         }
-      } catch (_) {
+      } catch {
         // ignore invalid paths
       }
     }
@@ -151,4 +161,5 @@ function createNitradoAPI(token) {
  */
 module.exports = createNitradoAPI;
 module.exports.createNitradoAPI = createNitradoAPI;
+
 
